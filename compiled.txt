@@ -1,0 +1,3653 @@
+const query = {
+	getHashId: () => Math.random().toString(36).slice(2, 7),
+	base64: (file) => {
+		return new Promise( resolve => {
+			let convert = null;
+			let reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = () => {
+				resolve(reader.result)
+			}
+
+		})
+
+	},
+	writePost2: async (data) => {
+		let statement = {
+			write2 : {
+				post : [
+					"insert into post set post_title = ?,"+
+					"post_hash_id = ?, post_admin_id = ?, post_status = ?",
+					"ssis",
+					[data.post_title, query.getHashId(), data.admin_id, "active"]
+				]
+			}
+		}
+
+		return statement;
+	},
+	writeContent: async (data, type) => {
+		let table = type == "p" ? "paragraph":"header";
+		let statement = {
+			write2: {
+				[table] : [
+					`insert into ${table} set ${table}_content = ?, `+
+					`${table}_index = ?, ${table}_post_hash_id = ?`,
+					"sis",
+					[data.content, data.index, data.hashId]
+				]
+			}
+		}
+		return statement;
+	},	
+	writeImage: async (data) => {
+		let statement = {};
+		await query.base64(data.file).then( resp => {
+			statement = {
+				write2: {
+					file : [
+						resp,
+						"insert into image set image_path = ?, image_caption =?, "+
+						"image_post_hash_id = ?, image_index = ?",
+						"sssi",
+						[null, data.caption, data.hashId, data.index]
+					]
+				}
+			}
+		})
+		return statement;
+	},
+	
+	getPosts: async (data, guest) => {
+		let active = guest ? "and post.post_status = ? ": "";
+		let statement = {
+			read2: {
+				post: [
+					"select post.*, admin.admin_username as admin "+
+					"from post inner join admin on admin.admin_id = "+
+					" post.post_admin_id where post.post_title like ? "+active+
+					"order by post.post_date desc limit ?,10",
+					"si",
+					[`%${data.search}%`, (data.page - 1)*10]
+				]
+			}
+		}
+		if(guest) {
+			statement.read2.post[1] = "ssi"
+			statement.read2.post[2] = [`%${data.search}%`,'active', (data.page - 1)*10]
+			let guestStatement = {
+				guest: "",
+				...statement
+			}
+
+			return guestStatement
+		}
+		return statement;
+	},
+
+	getPost2: async (hashId, guest) => {
+		let statement = {
+			read2: {
+				post : [
+					"select p.*, a.admin_username as admin "+
+					"from post p inner join admin a on p.post_admin_id = a.admin_id "+
+					"where post_hash_id = ? ", 
+					"s", 
+					[hashId]
+				]
+			}
+			
+		}
+		if(guest) {
+			let guestStatement = {
+				guest: "",
+				...statement
+			}
+			return guestStatement
+		}
+
+		return statement;
+	},
+	getContent: async (hashId, table, guest ) => {
+		let statement = {
+			read2: {
+				[table] : [`select * from ${table} where ${table}_post_hash_id = ?`, "s", [hashId]]
+			},
+		}
+
+		if(guest) {
+			let guestStatement = {
+				guest: "",
+				...statement
+			}
+			return guestStatement
+		}
+
+		return statement;
+	},
+	updateImage: async (data, id, type) => {
+		let statement = {};
+
+		if(type == "file") {
+			await query.base64(data).then( resp => {
+				statement = { 
+					edit: { 
+						file: [
+							resp,
+							"update image set image_path = ? where image_id = ?",
+							"si",
+							[null, id]
+						]
+					}
+				};
+			})
+			
+		}
+		else statement = { 
+			edit: { 
+				image: [
+					"update image set image_caption = ? where image_id = ?",
+					"si",
+					[data, id]
+				]
+			}
+		}
+		// console.log(statement)
+		return statement;
+	},
+	updateParagraph: async (data) => {
+		let statement = {
+			edit: {
+				paragraph: [
+					"update paragraph set paragraph_content = ? where paragraph_id = ?",
+					"si",
+					[data.paragraph_content, data.paragraph_id]
+				]
+			}
+		}
+
+		return statement;
+	},
+	updateHeader: async (data) => {
+		let statement = {
+			edit: {
+				header: [
+					"update header set header_content = ? where header_id = ?",
+					"si",
+					[data.header_content, data.header_id]
+				]
+			}
+		}
+
+		return statement;
+	},
+	updatePost: async (data) => {
+		let statement = {
+			edit: {
+				post: [
+					"update post set post_title = ? where post_id = ?",
+					"si",
+					[data.post_title, data.post_id]
+				]
+			}
+		}
+
+		return statement;
+	},
+	indexShuffle : (id, index, type) => {
+
+		let statement = {
+			edit: {
+				[ type ] : [
+					"update "+type+" set "+type+"_index = ? where "+type+"_id = ?",
+					"ii",
+					[ index, id ]
+				]
+			}
+		}
+
+		return statement;
+	},
+	addToPost: async (data, dataHashId, index, type) => {
+		// console.log({data, dataHashId, index, type});
+		// return;
+		let statement = {};
+		if(type=="img") {
+			let image = await query.base64(data.file)
+			statement = {
+				write2 : {
+					file: [
+						image,
+						"insert into image set image_path=?, image_caption=?, "+
+						"image_index=?, image_post_hash_id=?",
+						"ssis",
+						[null,data.caption,index,dataHashId]
+					]
+				}
+			}
+			return statement;
+		}
+		else {
+			let field = type=="p"?"paragraph":"header";
+			let statement = {
+				write2: {
+					[field] :[
+						"insert into "+field+" set "+field+"_content=?,"+
+						field+"_index=?,"+field+"_post_hash_id=?",
+						"sis",
+						[data.content, index, dataHashId]
+					]
+				}
+			}
+			return statement; 	
+		}
+
+		
+	},
+	changePostStatus: async (id, status) => {
+
+		let statement = {
+			edit: {
+				post: [
+					"update post set post_status = ? where post_id = ?",
+					"si",
+					[status ? "active":"archive", id]
+				]
+			}
+		}
+
+		return statement
+	},
+	deleteContent: async (id, type) => {
+
+		let statement = {
+			delete: {
+				[type] : [
+					"delete from "+type+" where "+type+"_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+
+		return statement;
+	},
+	postSummary:async  () => {
+		let statement = {
+			read2: {
+				post: [
+					"select count(*) as total,"+
+					"count(case when post_status = 'archive' then 1 end) as archive "+
+					"from post",
+					"",
+					[]
+				]
+			}
+		}
+		return statement;
+	},
+	totalCategory: async () => {
+		let statement = {
+			read2: {
+				post: [
+					"select count(*) as categories from category",
+					"",
+					[]
+				]
+			}
+		}
+		return statement;
+	},
+	checkPassword: async (data) => {
+		let statement = {
+			read2: {
+				admin: [
+					"select count(*) as exist from admin "+
+					"where admin_id = ? and admin_password = ?",
+					"is",
+					[data.admin_id, data.admin_password]
+				]
+			}
+		}
+		return statement;
+	},
+	updatePassword : async (password, id) => {
+		let statement = {
+			edit: {
+				admin :[
+					"update admin set admin_password = ? where admin_id = ?",
+					"si",
+					[password, id]
+				]
+			}
+		}
+		return statement
+	},
+	updateAdmin:async (data) => {
+		let statement = {
+			edit: {
+				admin :[
+					"update admin set admin_fname = ?, "+
+					"admin_lname = ?, admin_bday = ?, "+
+					"admin_gender = ? where admin_id = ?",
+					"ssssi",
+					[
+						data.admin_fname,
+						data.admin_lname,
+						data.admin_bday,
+						data.admin_gender,
+						data.admin_id
+					]
+				]
+			}
+		}
+		return statement;
+	},
+	getPopularPosts: async () => {
+		let statement = {
+			guest: "",
+			read2: {
+				post: [
+					"select a.admin_username as admin_username, p.* from post p "+
+					"inner join admin a on p.post_admin_id = a.admin_id "+
+					"order by p.post_view desc limit 3",
+					"",
+					[]
+				]
+			}
+		}
+
+		return statement
+	},
+	addViews :(hashId) => {
+		let statement = {
+			view : [
+				"update post set post_view = post_view + 1 where post_hash_id = ?",
+				"s",
+				[hashId]
+			]
+		}
+
+		return statement;
+	},
+	addPostCategory: async (data) => {
+		let statement = {
+			write2: {
+				post_category: [
+					"insert into post_category set post_category_post_id = ?,"+
+					"post_category_category_id = ?",
+					"ii",
+					[ data.post_id, data.category_id]
+				]
+			}
+		}
+
+		return statement
+	},
+	addCategory: async (name) => {
+		let statement = {
+			write2: {
+				category: [
+					"insert into category set category_name = ?",
+					"s",
+					[name]
+				]
+			}
+		}
+
+		return statement;
+	},
+	readCategory: async (name, guest) => {
+		let statement = {
+			read2: {
+				category: [
+					"select * from category where category_name like ? order by category_name",
+					"s",
+					[`%${name}%`]
+				]
+			}
+		}
+		if(guest) {
+			statement = {...statement, guest: ""}
+		}
+		return statement;
+	},
+	deletePostCategory: async  (data) => {
+		let statement = {
+			delete: {
+				post_category: [
+					"delete from post_category where post_category_category_id = ? "+
+					"and post_category_post_id = ?",
+					"ii",
+					[data.post_category_category_id, data.post_category_post_id]
+				]
+			}
+		}
+
+		return statement;
+	},
+	deleteCategory: async (id) => {
+		let statement = {
+			delete: {
+				category: [
+					"delete from category where category_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+		return statement;
+	},
+	getPostCategory: async (post_id, guest) => {
+		let statement = {
+			read2: {
+				post_category: [
+					"select c.* from post_category p "+
+					"inner join category c on p.post_category_category_id "+
+					"= c.category_id where p.post_category_post_id = ?",
+					"i",
+					[post_id]
+
+				]
+			}
+		}
+		if(guest) {
+			statement = {...statement, guest: ""}
+		}
+
+		return statement
+	},
+	getCategory: async (category) => {
+		let statement = {
+			read2: {
+				category: [
+					"select * from category where category_name like ?",
+					"s",
+					[`${category}%`]
+				]
+			}
+		}
+		return statement
+	},
+	getAllCategory: async (guest) => {
+		let statement = {
+
+			read2: {
+				category: [
+					"select * from category order by category_name",
+					"",
+					[]
+				]
+			}
+		}
+		if(guest) {
+			statement = {...statement, guest: ""}
+		}
+		return statement
+	},
+
+	getPostsByCategory: async (data) => {
+		let statement = {
+			guest: "",
+			read2: {
+				category: [
+					"select distinct p.*, a.admin_username as admin from post_category pc "+
+					"inner join post p on p.post_id = pc.post_category_post_id "+
+					"inner join category c on c.category_id = pc.post_category_category_id "+
+					"inner join admin a on a.admin_id = p.post_admin_id "+
+					"where c.category_name = ? limit ?,10",
+					"si",
+					[data.category,  (data.page - 1)*10]
+				]
+			}
+		}
+
+		return statement;
+	}
+
+}
+const services = () => {
+
+
+
+	const server = (data) => {
+
+	// return console.log(data);
+
+		const SERVER_URL = 'http://localhost/vueblog/server.php';
+		// const SERVER_URL = 'https://julven.000webhostapp.com/vuesample/backend/server.php?route=';
+		// const test = () => console.log(store.state.account);
+
+		let form = new FormData();
+
+		Object.keys(data).forEach( x => {
+			// console.log(x, JSON.stringify(data[x]))
+			form.append(x, JSON.stringify(data[x]))
+		});
+
+		let request = {
+			method: "POST",
+			body: form
+		};
+		
+		if("admin_token" in store.state.admin) {
+			request = { 
+				...request, 
+				headers: new Headers( {
+					"token" : store.state.admin.admin_token,
+					"id": store.state.admin.admin_id
+				} )
+			}
+		} 
+
+		// console.log(form)
+
+		return new Promise( (resolve, reject) => {
+			fetch(SERVER_URL, request)
+			.then(resp => resp.text())
+			.then(resp => {
+				
+				// console.log(resp);
+				
+				if(resp == "error_expired_token") {
+					store.dispatch("admin/action", { action: "logout", payload :null})
+					// Router.push("/login")
+					// return;
+				}
+				try{
+					resolve(JSON.parse(resp))
+
+				}catch(err) {
+					console.log(err)
+					
+					
+					resolve(false)
+				}
+				
+			}).catch( err  => {
+				reject({error: err})
+			})
+		})
+		
+	}
+
+	let addViews = (hashId) => {
+		console.log("add view to post "+hashId)
+		let statement = query.addViews(hashId)
+		// console.log(JSON.stringify(statement))
+		server(statement)
+	}	
+	
+	return {
+		server,
+		addViews
+		
+	}
+
+}
+const  Admin = {
+	template: `
+		<div>
+			<h1>Admin </h1>
+			<div>
+				<p> 
+				<router-link to="/admin"> Home </router-link> |
+				<router-link to="/admin/list"> List </router-link> |
+				<router-link to="/admin/account"> Account </router-link> |
+				<a href="#/" @click="logout">Logout</a>
+				</p>
+
+			</div>
+			<router-view />
+		</div>
+	`,
+	setup () {
+
+		let {server} = services();
+		let store = Vuex.useStore();
+		let router = VueRouter.useRouter();
+
+		Vue.onMounted( () => {
+
+			let category = [
+				"possibility",
+				"charity",
+				"literature",
+				"device",
+				"guidance",
+				"permission",
+				"throat",
+				"power",
+				"republic",
+				"conclusion",
+				"environment",
+				"contribution",
+				"chapter",
+				"estate",
+				"blood",
+				"performance",
+				"queen",
+				"tea",
+				"security",
+				"establishment",
+				"product",
+				"song",
+				"girlfriend",
+				"storage",
+				"week",
+				"video",
+				"collection",
+				"atmosphere",
+				"lake",
+				"uncle",
+				"intention",
+				"photo",
+				"lab",
+				"scene",
+				"reaction",
+				"outcome",
+				"player",
+				"excitement",
+				"boyfriend",
+				"history",
+				"opinion",
+				"data",
+				"candidate",
+				"membership",
+				"personality",
+				"county",
+				"independence",
+				"control",
+				"equipment",
+				"assumption",
+
+			];
+			
+			// for( let i = 33; i < 119; i++ ) {
+			// 	let x = Math.ceil(Math.random() * 3);
+			// 	let yy = []
+			// 	let index = null
+
+			// 	for(let ii = 0; ii < x; ii++) {
+			// 		let index = Math.ceil(Math.random()*49)
+			// 		if(yy.includes(index)){
+			// 			ii--;
+			// 			continue;
+			// 		} 
+			// 		// yy.push(index)
+
+			// 		server({
+			// 			write2: {
+			// 				post_category: [
+			// 					"insert into post_category set post_category_post_id = ?,"+
+			// 					"post_category_category_id = ?",
+			// 					"ii",
+			// 					[i, index]
+			// 				]
+			// 			}
+			// 		})
+
+			// 	}
+			// 	console.log(yy)
+			// }
+
+		})
+		
+
+		let logout = () => {
+
+			store.dispatch("admin/action", {action: "logout", payload: null}).then(()=>{
+				console.log(store.state.admin)
+			})
+			
+		}
+
+		return {
+			logout
+		}
+	}
+			// console.log(category.
+}
+const  AdminAccount = {
+	template: `
+		<div >
+			<h1> Account</h1>
+			<div class="d-flex flex-wrap">
+				<div class="m-2">
+					<h3>information</h3>
+					<p>
+						username {{account.admin_username}} <br/>
+						id: {{account.admin_id}} <br/>
+						first name 
+						<input :value="account.admin_fname" 
+						@change="e => account.admin_fname = e.target.value"/> <br/>
+						last name 
+						<input :value="account.admin_lname" 
+						@change="e => account.admin_lname = e.target.value"/> <br/>
+						birthday 
+						<input type="date" :value="account.admin_bday"
+						@change="e => account.admin_bday = e.target.value"/> <br/>
+
+						gender <br/> 
+						<input type="radio" name="gender"
+						value="male" :checked="account.admin_gender == 'male'"
+						@change="e => account.admin_gender = e.target.value"/> male 
+						<input type="radio" name="gender"
+						value="female" :checked="account.admin_gender == 'female'"
+						@change="e => account.admin_gender = e.target.value"/> female <br/>
+
+						<button @click="updateInfo">update</button>
+					</p>
+					
+				</div>
+
+				<div  class="m-2">
+					<h3>password</h3>
+					<p>
+						old <input type="password" :value="newPassword.old" 
+						@change="e=>newPassword.old = e.target.value"/> <br/>
+						new <input type="password" :value="newPassword.now" 
+						@change="e=>newPassword.now = e.target.value"/> <br/>
+						confirm <input type="password" :value="newPassword.conf" 
+						@change="e=>newPassword.conf = e.target.value"/> <br/>
+						<button @click="updatePassword()">update</button>
+					</p>
+				</div>
+			</div>
+		</div>
+	`,
+	setup () {
+
+		let {state: {admin}} = Vuex.useStore();
+		let { ref, onMounted,  } = Vue;
+		let {server} = services();
+
+		let newPassword = ref({
+			old: "",
+			now: "",
+			conf: "",
+		})
+
+		let account = ref({
+			admin_fname: "",
+			admin_lname: "",
+			admin_id: "",
+			admin_gender: "",
+			admin_bday: "",
+			admin_username: "",
+		});
+
+		let updateInfo = () => {
+			console.log(account.value)
+			query.updateAdmin(account.value).then(resp => {
+				// console.log(resp)
+				server(resp).then( resp => {
+					alert("update successfull")
+					store.dispatch("admin/action", {action: 'setAdmin', payload: account.value})
+				})
+			})
+			// 
+		}
+
+		onMounted( () => {
+			account.value = {
+				...account.value,
+				...admin
+			}
+		})
+
+		let updatePassword = () => {
+			
+			let {now, old, conf} = newPassword.value;
+			
+			if(now == "" || old == "" || conf == "") {
+				alert("all fields must be filled!");
+				return;
+			}
+			if(now.length < 5) {
+				alert("password must be atleast 5 letters minimum");
+				return;
+			}
+			if(now !== conf) {
+				alert("new and confirm did not match!");
+				return;
+			}
+			
+			query.checkPassword({
+				admin_id: account.value.admin_id,
+				admin_password: old
+			}).then(resp => {
+				// console.log(resp)
+				server(resp).then( resp2 => {
+					// console.log(resp2)
+					if(resp2[0].exist > 0) {
+						query.updatePassword(now, account.value.admin_id).then(resp3 => {
+							// console.log(resp3)
+
+							server(resp3).then(resp4 => {
+
+								if(resp4.affected_rows > 0) {
+									alert("password changed successfully")
+									newPassword.value.old = "";
+									newPassword.value.now = "";
+									newPassword.value.conf = "";
+									return;
+								} else {
+									newPassword.value.old = "";
+									alert("nothing has changed")
+									return
+								}
+								
+							})
+						})
+					}
+					else {
+						alert("wrong password!")
+						return
+					}
+				})
+			})
+			
+
+		}
+
+		return {
+			account,
+			updateInfo,
+			newPassword,
+			updatePassword
+		}
+	}
+}
+const AdminHome = {
+	template: `
+		
+			<h1> Home</h1>
+			<div class="d-flex flex-wrap">
+			<div class="m-2">
+				<h2>Account Info</h2>
+				<p>
+					username: {{vuex.admin_username}} <br/>
+					id: {{vuex.admin_id}}<br/>
+					name: {{vuex.admin_fname}} {{vuex.admin_lname}} <br/>
+					sex: {{vuex.admin_gender}} <br/>
+					birthday: {{vuex.admin_bday}} <br/>
+					<router-link to="/admin/account">view</router-link>
+
+				</p>
+			</div>
+
+			<div class="m-2">
+				<h2>Post Summary</h2>
+				<p>
+					total: {{summary.total}} <br/>
+					archived: {{summary.archive}}  <br/>
+					categories: {{summary.categories}} <br/>
+ 
+					<router-link to="/admin/list">view</router-link>
+
+				</p>
+			</div>
+		</div>
+	`,
+	setup () {
+
+		let { watch, computed, onMounted, ref } = Vue;
+		let store = Vuex.useStore();
+		let { server } = services();
+		let { state: { admin } } = store;
+		let summary = ref({
+			total: 0,
+			archive: 0,
+			categories: 0
+		})
+
+		onMounted( () => {
+			query.postSummary().then( resp => {
+				server(resp).then(resp2 => {
+					// console.log(resp2)
+					summary.value.total = resp2[0].total;
+					summary.value.archive = resp2[0].archive;
+				})
+			})
+			query.totalCategory().then(resp => {
+				server(resp).then(resp2 => {
+					summary.value.categories = resp2[0].categories
+				})
+			})
+		})
+		
+		return {
+			vuex: computed( () => admin),
+			summary
+		}
+	}
+}
+const  AdminList = {
+	template: `
+		<div>
+			<router-view />
+			
+		</div>
+	`,
+	setup () {
+
+		let { server, } = services();
+		let {onMounted, ref, computed, watch} = Vue;
+		let store = Vuex.useStore();
+		let router = VueRouter.useRouter();
+		let { params } = VueRouter.useRoute();
+		
+
+		onMounted( () => {
+			// console.log(params.page, !isNaN(Number(params.page)))
+			// console.log(params)
+
+			if("page" in params) {
+				if(!isNaN(Number(params.page))){
+
+					let page = Math.floor(Number(params.page));
+					let pages = []
+					store.dispatch("post/action", {action: "setPage", payload: page})
+					for(let i = 1; i <= page; i++) {
+						pages.push(i)
+					}
+					// console.log(pages)
+					store.dispatch("post/action", {action: "setPages", payload: pages})
+				} 
+				else window.history.pushState({}, '', "#/admin/list")
+			}
+
+			else if ("search" in params ) {
+				
+				store.dispatch("post/action", {action: "setSearch", payload: params.search})
+			
+			}
+
+			getPosts();
+
+		})
+
+		let getPosts = () => {
+			let data = {
+				page: store.state.post.page,
+				search: store.state.post.search
+			}
+			query.getPosts(data).then( resp => {
+				
+				server(resp).then( async resp2 => {
+					// console.log(resp2 == null)
+					if(resp2 == null) {
+						router.replace("/admin/list");
+						await store.dispatch("post/action", {action: "setPages", payload: [1]})
+						await store.dispatch("post/action", {action: "setPage", payload: 1})
+						getPosts();
+						return;
+					}
+
+					store.dispatch("post/action", {action: "setPosts", payload: resp2}).then( () => {
+						// console.log(store.state.post.posts)
+					})
+				})
+			})
+		}
+
+
+
+		watch( () => params, (now, old) => {
+			// console.log(now, old)
+		}, {deep: true})
+
+		return {
+			
+		}	
+	}
+}
+
+const  AdminListAdd = {
+
+	template: `
+		<div>
+			<h3> List Add</h3>
+			<div>
+				title <input :value="firstContent[0].value" 
+				@change="e=> firstContent[0].value = e.target.value"/>
+			</div>
+			<div> 
+				<img src=""/> <br/>
+				image <input type="file" accept="image/png, image/gif, image/jpeg"
+				@change="e => firstContent[1].value = e.target.files[0]"/><br/>
+				caption <input :value="firstContent[1].cap"
+				@change="e=> firstContent[1].cap = e.target.value"/>
+			</div>
+			<div>
+				paragraph <br/>
+				<textarea :value="firstContent[2].value"
+				@change="e=> firstContent[2].value = e.target.value"/>
+			</div>
+			<div v-for=" (x, i) in content" :key="x.id">
+				<paragraph_comp v-if="x.type==='p'" 
+				:data="x" 
+				@deleting=" e=> deleteContent(e)" 
+				@index="e => changeIndex(e) "/>
+				<image_comp v-if="x.type==='img'" 
+				:data="x" 
+				@deleting=" e=> deleteContent(e)" 
+				@index="e => changeIndex(e) "/>
+				<header_comp v-if="x.type==='h3'" 
+				:data="x" 
+				@deleting=" e=> deleteContent(e)" 
+				@index="e => changeIndex(e) "/>
+			</div>
+
+			<select ref="choose">
+				<option value="p">paragraph</option>
+				<option value="img">image</option>
+				<option value="h3">header</option>
+			</select> <button @click="setContent">Add</button> <br>
+			<button @click="addContent">Submit</button>
+			<button @click="() => router.go(-1)"> Back </button>
+		</div>
+	`,
+	setup () {
+		let { server } = services();
+		let randId = () => Math.random().toString(36).slice(2, 7);
+		let { ref, watch } = Vue;
+		let router = VueRouter.useRouter();
+		let {state } = Vuex.useStore();
+		let firstContent = ref([
+			{type: "h1", value: "", id: randId()},
+			{type: "img", value: null, cap: "", id: randId() },
+			{type: "p", value: "", id: randId()},
+			])
+		let choose = ref(null)
+		let content = ref([])
+
+		
+
+		let setContent = () => {
+			// console.log(choose.value.value)
+			if(choose.value.value === "p"){
+				content.value.push({type: "p", value: "", id: randId()});
+			} 
+
+			else if (choose.value.value === "img"){
+				content.value.push({type: "img", value: null, cap: "", id: randId()});
+			} 
+
+			else content.value.push({type: "h3", value: "h3", value: "", id: randId()});
+
+			// console.log(content.value)
+		}
+
+		let changeIndex = ({id, direction}) => {
+
+			let index = content.value.findIndex( object => {
+				return object.id === id;
+			})
+			// console.log(index, content.value.length - 1 > index, 0 < index)
+
+			if(direction === "up" && 0 < index) {
+				[content.value[index - 1], content.value[index]] =
+				[content.value[index], content.value[index - 1]]
+				return;
+			}
+			if(direction === "down" && content.value.length - 1 > index){
+
+				[content.value[index + 1], content.value[index]] =
+				[content.value[index], content.value[index + 1]]
+				return;
+			}
+		}
+
+		let deleteContent = id => {
+			// console.log(id)
+			// return;
+			let newContent = []
+			content.value.forEach( x => {
+				if(x.id !== id) newContent.push(x)
+			})
+
+			content.value = newContent;
+		}
+
+		let addContent = async () => {
+
+			let arrContent = [firstContent.value[1], firstContent.value[2], ...content.value];
+			let statements = [];
+
+			let post = await query.writePost2({
+				post_title: firstContent.value[0].value,
+				admin_id: state.admin.admin_id,
+			})
+
+			let post_hash = post.write2.post[2][1]
+
+			for( var i = 0; i < arrContent.length; i++){
+				let statement = null
+				if(arrContent[i].type == "img"){
+					// console.log(arrContent[i].cap);
+					statement = await query.writeImage({
+						file: arrContent[i].value, 
+						caption: arrContent[i].cap, 
+						hashId: post_hash,
+						index: i
+					});
+				} 
+				else {
+					// console.log(arrContent[i])
+					statement = await query.writeContent({
+						content: arrContent[i].value, 
+						index: i, 
+						hashId: post_hash,
+					}, arrContent[i].type);
+				} 
+
+				statements.push(statement)
+				
+			}
+
+			let servers = [];
+			servers.push(() => server(post))
+			statements.forEach( x => {
+				servers.push(() => server(x))
+			})
+
+			Promise.all(servers.map( func => func())).then(resp => {
+				alert("post submitted")
+
+			})
+
+		}
+
+		watch(() => content.value, (now, old) => {
+			console.log(now)
+		}, {deep: true})
+
+
+
+		return {
+			choose,
+			content,
+			setContent,
+			deleteContent,
+			addContent,
+			router,
+			changeIndex,
+			firstContent
+		}
+	},
+	beforeRouteLeave( to, from) {
+		const answer = window.confirm('Do you really want to leave? you have unsaved changes!')
+  		if (!answer) return false
+	}
+}
+
+const AdminListAddHeader = {
+	props: ['data'],
+	template: `
+		<div> 
+			<div>
+				header({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
+			
+			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
+			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a> <br/>
+				<input :value="data.value" @change="e => data.value = e.target.value"/>
+			</div>
+		</div>
+	`,
+	setup ({data}) {
+		// Vue.onMounted( () => console.log(data))
+		let id = Vue.ref(data.id)
+		let emitDelete = (e, emit) => {
+			e.preventDefault();
+			
+			emit('deleting', id.value)
+
+		}
+
+		let emitChangeIndex = (e, emit, direction) => {
+			e.preventDefault();
+			emit('index', {id: id.value, direction})
+
+		}
+		return {
+			data,
+			emitDelete,
+			emitChangeIndex
+		}
+	}
+}
+
+
+const AdminListAddImage = {
+	props: ['data'],
+	template: `
+		<div> 
+			<img src=""/> <br/>
+			image({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
+			
+			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
+			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a>  <br/>
+			<input type="file" @change="e => data.value = e.target.files[0]"
+			accept="image/png, image/gif, image/jpeg"/><br/>
+			caption <input @change="e => data.cap = e.target.value"/>
+		</div>
+	`,
+	setup ({data}) {
+		let id = Vue.ref(data.id)
+		let emitDelete = (e, emit) => {
+			e.preventDefault();
+			
+			emit('deleting', id.value)
+
+		}
+		let emitChangeIndex = (e, emit, direction) => {
+			e.preventDefault();
+			emit('index', {id: id.value, direction})
+
+		}
+
+		// Vue.onMounted( () => console.log(data))
+		
+		return {
+			data,
+			emitDelete,
+			emitChangeIndex
+		}
+	}
+}
+
+const AdminListAddParagraph = {
+	props: ['data'],
+	template: `
+		<div>
+			paragraph({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
+			
+			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
+			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a> 
+			<br/>
+			<textarea :value="data.value" @change="e => data.value = e.target.value" />
+		</div>
+	`,
+	setup ({data}) {
+
+		let id = Vue.ref(data.id)
+		// Vue.onMounted( () => console.log(data))
+
+		let emitDelete = (e, emit) => {
+			e.preventDefault();
+			
+			emit('deleting', id.value)
+
+		}
+		let emitChangeIndex = (e, emit, direction) => {
+			e.preventDefault();
+			emit('index', {id: id.value, direction})
+
+		}
+
+		Vue.onMounted(()=> console.log(id.value))
+
+		return {
+			data,
+			emitDelete,
+			emitChangeIndex
+		}
+	}
+}
+
+const  AdminListEdit = {
+	template: `
+		<div v-if="loaded">
+			<h3> Post Edit </h3>
+			category: <br/>
+			<span v-for="x in postTitle.category">
+				{{x.category_name}}  
+				<a href="#/" title="delete" @click.prevent="deleteCategory(x.category_id)">x</a> <br/>
+			</span> 
+
+			<admin_list_edit_category 
+			:post_id="postTitle.post_id"
+			:categories="postTitle.category"  
+			@reloadPost="reload()"/>
+
+			id: {{postTitle.post_hash_id}} <br/>
+			admin: {{postTitle.admin}} <br/>
+			date: {{time(postTitle.post_date)}} <br/>
+			title 
+			<span @click="e => e.preventDefault()">
+				
+				<a title="update" href="#/" @click="update(postTitle)">!!</a> <br/>
+			</span>
+			
+			<input :value="postTitle.post_title" 
+			@change="e=>postTitle.post_title = e.target.value"/>
+
+			<div v-for=" (x,i) in postData" :key="x.paragraph_id || x.image_id || x.header_id">
+				
+				
+				<div v-if="x.paragraph_id" :key="x.paragraph_id">
+
+					paragraph({{x.paragraph_id || x.image_id || x.header_id}}) |
+					<span @click="e=>e.preventDefault()">
+						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
+						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
+						<a title="delete" href="#/"  @click="deleteContent(x.paragraph_id, 'p')">x</a> |
+						<a title="update" href="#/" @click="update(x)">!!</a> <br/>
+					</span>
+					<textarea :value="x.paragraph_content" 
+					@change="e=>x.paragraph_content = e.target.value"/> 
+				</div>
+				<div v-if="x.image_id" :key="x.image_id">
+					image({{x.paragraph_id || x.image_id || x.header_id}}) |
+					<span @click="e => e.preventDefault()">
+						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
+						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
+						<a title="delete" href="#/"  @click="deleteContent(x.image_id, 'img')">x</a> |
+						<a title="update image" href="#/"
+						@click="newImage['image_'+x.image_id].click()">!!</a> <br/>
+					</span>
+					<div style="width: 200px" ref="showImage">
+						<img :src="x.image_path" :alt="x.image_path" style="width: 100%"/><br/>
+					</div>
+					<input type="file" accept="image/png, image/gif, image/jpeg"
+					:ref="e=>newImage['image_'+x.image_id]=e" 
+					hidden @change="e=>imageUpdate(e, x.image_id)"/>
+
+					<input :value="x.image_caption" @change="e=>x.image_caption=e.target.value"/> 
+					<span @click="e=>e.preventDefault()"> 
+						<a title="update caption" href="#/" @click="e=>imageUpdate(x)">!!</a>
+					</span>
+				</div>
+				<div v-if="x.header_id" :key="x.header_id">
+					header({{x.paragraph_id || x.image_id || x.header_id}}) |
+					<span @click="e => e.preventDefault()">
+						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
+						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
+						<a title="delete" href="#/" @click="deleteContent(x.header_id,'h')">x</a> |
+						<a title="update" href="#/" @click="update(x)">!!</a> <br/>
+					</span>
+					<input :value="x.header_content"
+					@change="e=>x.header_content = e.target.value"/>
+				</div>
+			</div>
+			<admin_list_edit_add 
+			@contentadded="e => loadPost(e.hashId)"
+			:post="postTitle"
+			:content_length="postData.length"/>
+
+			<button @click="router.go(-1)"> back</button> 
+			<button @click="changeStatus(postTitle.post_id, false)" 
+			v-if="postTitle.post_status=='active'"> archive</button> 
+			<button @click="changeStatus(postTitle.post_id, true)" 
+			v-else> activate</button> 
+		
+		</div>
+	`,
+	setup () {
+
+		let { server } = services();
+		let { onMounted, ref, computed, reactive } = Vue;
+		let {params} = VueRouter.useRoute();
+		let router = VueRouter.useRouter();
+		let postHashId = ref("");
+		let loaded = ref(false);
+
+		let postTitle = ref({})
+		let postData = ref([]);
+		let postId = ref("")
+		let newImage = ref([])
+		let showImage = ref(null)
+
+		onMounted( async () => {
+			// console.log("id" in params)
+			// return
+			if(!("id" in params) && params.id == "") {
+				router.replace("/admin/list");
+				return;
+			}
+			postHashId.value = params.id
+			loadPost(params.id)
+			
+			
+		})
+
+	
+
+		let loadPost = async (hashId) => {
+			loaded.value = false;
+
+			let post = await query.getPost2(hashId);
+			let paragraph = await query.getContent(hashId, "paragraph");
+			let image = await query.getContent(hashId, "image");
+			let header = await query.getContent(hashId, "header");
+			
+			Promise.all([
+				server(post),
+				server(paragraph),
+				server(image),
+				server(header),
+				
+			]).then( async (resp) => {
+
+
+
+				
+
+				if(resp[0] == null) {
+					router.replace("/admin/list");
+					return;
+				}
+				
+				// let arrLen = resp[1].length+resp[2].length+resp[3].length;
+				// let arrLen = 0;
+
+				postTitle.value = resp[0][0];
+
+				let category = await query.getPostCategory(postTitle.value.post_id)
+				let category_resp = await server(category)
+
+				postTitle.value.category = category_resp;
+				// console.log( category_resp)
+				// return;
+
+				// console.log(postTitle.value);
+				// for(var i = 0; i < arrLen; i++) postData.value.push({});
+				let arrContent = [];
+				
+				// arrContent = resp[1].concat(resp[2], resp[3])
+				if(resp[1] != null) arrContent =  [...arrContent, ...resp[1] ]
+				if(resp[2] != null) arrContent =  [...arrContent, ...resp[2] ]
+				if(resp[3] != null) arrContent =  [...arrContent, ...resp[3] ]
+				arrContent.forEach( x => {
+					// console.log(xx)		
+					let p = "paragraph_index";
+					let img = "image_index";
+					let h3 = "header_index";
+
+					if(Object.keys(x).includes(p)) {
+						x['index'] = x[p];
+						// postData.value[xx[p]] = x;
+					}
+					if(Object.keys(x).includes(img)) {
+						x['index'] = x[img];
+						// postData.value[xx[img]] = x;
+				
+					} 	
+					if(Object.keys(x).includes(h3)) {
+						x['index'] = x[h3];
+						// postData.value[xx[h3]] = xx;
+					}	
+					
+				})
+				
+				arrContent.sort((a,b) =>  a.index  - b.index )
+				postData.value = arrContent			
+				
+				loaded.value = true;
+			
+			})
+		}
+
+		let test = (e) => {
+			console.log(newImage.value)
+		}
+
+		let imageUpdate = (value, id) => {
+			// console.log(!("image_id" in value));
+			// return;
+			let conf = window.confirm("update selected info?")
+			if(conf) {
+				
+				if(!("image_id" in value)) {
+					// console.log("file");
+					// return;
+					// console.log(newImage.value[0].files[0])
+					query.updateImage(
+						value.target.files[0],
+						id,
+						"file"
+					).then( resp => {
+						server(resp).then( resp2 => {
+							loadPost(postHashId.value)
+						});
+						// console.log(resp)
+					})
+				}
+				else {
+					// console.log("image");
+					// return;
+					query.updateImage(value.image_caption,value.image_id,"image").then( resp =>{
+						// console.log(JSON.stringify(resp))
+						server(resp).then( resp2 => {
+							// console.log(resp2)
+							// window.location.reload(); 
+
+
+							if(resp2.affected_rows > 0) {
+
+							} else {
+
+							}
+						})
+					})
+
+				} 
+			}
+			
+		}
+
+		let update = async (x) => {
+			let type = null;
+			let table = "";
+			// console.log("paragraph_id" in x,"header_id" in x,"post_id" in x);
+			
+
+			let conf = window.confirm("update selected info?")
+			if(conf) {
+				if("paragraph_id" in x){
+					table = "paragraph";
+					type = await query.updateParagraph(x);
+				} 
+				else if ("header_id" in x) {
+					table = "header";
+					type = await query.updateHeader(x);
+				} 
+				else if ("post_id" in x) {
+					table = "post"
+					type = await query.updatePost(x);
+				} 
+				
+				server(type).then(resp2 => {
+					if(table == "post") store.dispatch('post/action', {action: "setPost", payload: x})
+					loadPost(postHashId.value)
+					
+				})
+				
+			}
+		}
+
+		let move = (data, type) => {
+
+			let conf = window.confirm("move selected content?")
+			if(!conf) return
+		
+			let getField = (value) => {
+				let field = "";
+				if("paragraph_id" in value) field="paragraph";
+				if("image_id" in value) field="image";
+				if("header_id" in value) field="header";
+
+				return field;
+			}
+			
+			// console.log(field)
+			let dataIndex = data[getField(data)+"_index"];
+			let data1 = null;
+			let data2 = null;
+		
+
+			if(type == "up") {
+				if(dataIndex > 0) {
+					data1 = postData.value[dataIndex];
+					data2 = postData.value[dataIndex - 1];
+					console.log({move_up:[data1, data2]})
+					
+				} else {
+					console.log("already first")
+					return;
+				}
+			}
+			else {
+				if(dataIndex < postData.value.length - 1) {
+					data1 = postData.value[dataIndex];
+					data2 = postData.value[dataIndex + 1];
+					console.log({move_down:[data1, data2]})
+				} else {
+					console.log("already last")
+					return;
+				}
+			}
+				let query1 = query.indexShuffle(
+					data1[getField(data1)+"_id"],
+					data2[getField(data2)+"_index"],
+					getField(data1)
+				);
+				let query2 = query.indexShuffle(
+					data2[getField(data2)+"_id"],
+					data1[getField(data1)+"_index"],
+					getField(data2)
+				);
+			
+				Promise.all([
+					server(query1),
+					server(query2)
+				]).then( resp => {
+			
+					loadPost(postHashId.value)
+					
+						
+				})	
+
+		}
+
+		let changeStatus = (x, status) => {
+			
+			let conf = window.confirm((status? "activate":"archive")+" selected post?")
+			if(conf) {
+				// console.log(x, status)
+				query.changePostStatus(x, status).then( resp => {
+					// console.log(resp)
+					// return
+					server(resp).then( resp2 => {
+						
+						postTitle.value.post_status = status? "active": "archive";
+						console.log({status: postTitle.value})
+						store.dispatch('post/action', {action: "setPost", payload: postTitle.value})
+						loadPost(postHashId.value)
+					})
+				})
+			}
+		}
+
+		let deleteContent = (id, type) => {
+			let conf = window.confirm("delete selected content?")
+			let theType = type == "p" ? "paragraph" : type == "img" ? "image" : "header"
+			if(conf) {
+				// console.log(id)
+				query.deleteContent(id, theType).then( resp => {
+					// console.log(resp)
+					server(resp).then(resp2 => {
+						loadPost(postHashId.value)
+						// console.log(resp2)
+						// window.location.reload(); 
+					})
+				})
+			}
+			
+		}
+
+		let reload = () => {
+			// console.log()
+			loadPost(postTitle.value.post_hash_id)
+		}
+
+		let deleteCategory = async (x) => {
+			// console.log(x, postTitle.value.post_id)
+
+			let conf = window.confirm("delete this post category?")
+			if(conf) {
+				let statement = await query.deletePostCategory({
+					post_category_category_id: x,
+					post_category_post_id: postTitle.value.post_id
+				});
+
+				// console.log(statement)
+				// return
+				let resp = await server(statement)
+
+				console.log(resp)
+				loadPost(postTitle.value.post_hash_id)
+			}
+			
+
+			
+
+		}	
+
+		return {
+			postTitle,
+			postData,
+			time: value => moment(value).format('MMM D, YYYY H:mm a '),
+			newImage,
+			test,
+			showImage,
+			imageUpdate,
+			update,
+			move,
+			router,
+			changeStatus,
+			loaded,
+			deleteContent,
+			loadPost,
+			reload,
+			deleteCategory
+			
+		}
+	}
+}
+let AdminListEditAdd = {
+	
+	template: `
+		<div>
+
+			<div v-if="select=='p'">
+				add paragraph <br/>
+				<textarea @change="e=>field = e.target.value"/>
+			</div>
+			<div v-if="select=='img'">
+				add image<br/>
+				<input type="file" @change="e=>field['file'] = e.target.files[0]"/><br/>
+				caption<br/>
+				<input @change="e=>field['caption'] = e.target.value"/>
+			</div>
+			<div v-if="select=='h3'">
+				add header<br/>
+				<input @change="e=>field = e.target.value"/>
+			</div>
+			<select  @change="e=>selecting(e.target.value)">
+				<option value="p">paragraph</option>
+				<option value="img">image</option>
+				<option value="h3">header</option>
+			</select> 
+			<button @click="addContent(props.post.post_hash_id, props.content_length, $emit)">Add</button> <br>
+			
+			
+
+		</div>
+	`,
+	props: ['post', "content_length"],
+	setup(props) {
+
+		let {ref, watch, defineProps, onMounted} = Vue
+		let { server } = services();
+		
+		let select = ref("p")
+		let field = ref(null)
+		let paragraph = ref(null)
+		let header = ref(null)
+		let image = ref(null)
+
+		onMounted( () => {
+			console.log(props)
+		})
+
+		let addContent = (hashId, index, emit) => {
+			// console.log(field.value)
+			// return
+			let data = {}
+
+			if (select.value == "img") {
+				// console.log(JSON.parse(JSON.stringify(field.value)))
+				query.addToPost({
+					file: field.value.file,
+					caption: field.value.caption
+				}, hashId, index,"img").then( resp => {
+					// console.log(resp)
+					server(resp).then(resp2 => {
+						// console.log(resp2)
+						emit('contentadded',{hashId});
+					})
+				})
+			}
+			else {
+				query.addToPost({content: field.value}, hashId, index, select.value).then(resp => {
+					// console.log(resp)
+					// return;
+					server(resp).then(resp2 => {
+						// console.log(resp2)
+						emit('contentadded',{hashId});
+					})
+				})
+			}
+		}
+
+		let selecting = (val) => {
+			// console.log(val)
+			select.value = val
+			
+			if(val == "img")field.value = {file: null, caption: ""};
+			else field.value = "";
+		}
+
+		watch( () => select.value, (now, old) => {
+			// console.log("select", now, old)
+		}, {deep: true} )
+
+		return {
+			select,
+			addContent,
+			selecting,
+			field,
+			props
+
+		}
+	}
+}
+let AdminListEditCategory = {
+	template: `
+		<div class="">
+
+		  <a class="" href="#" role="button" id="dropdownMenuLink" 
+		  data-bs-toggle="dropdown" aria-expanded="false">
+		    Add Category
+		  </a>
+
+		  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+		    <li>
+		    	<input v-model="search"/>
+		    	
+		    </li>
+		    <li @click.prevent="">
+		    	<a class="dropdown-item" href="#/"
+		    	v-for="x in category" :key="x.category_id"
+		    	v-if="exists" @click="addCategoryToPost(x, $emit)">
+		    	{{x.category_name}}
+		    	</a>
+		    	<span v-else>not found </span>
+		    </li>
+		    
+		  </ul>
+		</div>
+	`,
+	props: ['post_id', 'categories'],
+	setup ({post_id, categories}) {
+
+		let { ref, watch } = Vue;
+		let {server} = services();
+		let timeout = null
+		let category = ref([])
+		let exists = ref(true)
+
+
+		let search = ref("")
+
+		let searching = (x) => {
+			exists.value = true
+			window.clearTimeout(timeout)
+			timeout = setTimeout( async() => {
+				if(x == "") {
+					category.value = []
+
+					return;
+				} 
+				let statement = await query.getCategory(x);
+				// console.log(statement)
+				// return;
+				let resp = await server(statement);
+
+				if(resp == null) exists.value = false;
+				else category.value = resp
+
+				console.log(resp)
+			}, 1000)
+		}
+
+		let addCategoryToPost = async (x, emit) => {
+
+
+			// console.log(categories.length > 2);
+			// return;
+
+			if(categories.length  > 2) {
+				alert("maximum of 3 categories per post!")
+				return;
+			};
+
+			let new_category = null;
+			let post_category = null;
+			if(x) {
+				 post_category = await query.addPostCategory({
+				 	post_id: post_id,
+				 	category_id: x.category_id
+				 });
+
+				 let resp  = await server(post_category);
+				
+				
+				search.value = "";
+				category.value = [];
+
+
+				 emit('reloadPost');
+				
+				 
+
+
+			}
+			
+			
+		}
+
+		watch(() => search.value, (now, old) => {
+			searching(now)
+		},{deep: true}) 
+
+		return {
+			search,
+			category,
+			exists,
+			addCategoryToPost
+
+		}
+	}
+}
+const  AdminListTable = {
+	template: `
+		<div>
+			<h3> List Table</h3>
+			<input v-model="localSearch"/> 
+			<button @click="goSearch()">Search</button>
+			<router-link to="/admin/list/add"><button>Add</button></router-link>
+			<table>
+				<thead>
+					 <tr>	
+					 	<th>ID</th>
+					 	<th>title</th>
+					 	<th>date</th>
+					 	<th>admin</th>
+					 	<th>status</th>
+					 	<th>action</th>
+					 </tr>
+				</thead>
+				<tbody>
+					<tr v-for="x in posts" :key="x.post_id">
+						<td>{{x.post_id}}</td>
+						<td>{{x.post_title}}</td>
+						<td>{{time(x.post_date)}}</td>
+						<td>{{x.admin}}</td>
+						<td>{{x.post_status}}</td>
+						<td>
+							<router-link :to="'/admin/list/edit/'+x.post_hash_id">edit</router-link> |
+							<a href="#/" @click="event => event.preventDefault()">view</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<p> 
+				page(s) 
+				<span v-for="(x, i) in pages" >
+				
+					<router-link v-if="x != page"
+					:to="'/admin/list/page/'+x" 
+					@click="(e)=>goToPage(e,x)">{{x}}</router-link> 
+					<span v-else>{{x}}</span>|
+					
+				</span>
+				<span  v-if="end">end</span >
+				<a href="#/" @click="e => clickMore(e)" v-else> more...</a>
+			</p>
+		</div>
+	`,
+	setup () {
+
+		let {server}  = services();
+	  	let router = VueRouter.useRouter();
+		let store = Vuex.useStore();
+		let {onMounted, ref, computed, watch} = Vue;
+		let end = ref(false);
+		let localSearch = ref("")
+
+		let loadPosts = (type) => {
+			let { search, page } = store.state.post;
+
+			query.getPosts({search, page}).then( resp => {
+				// console.log(resp)
+				server(resp).then( async resp2 => {
+
+					// console.log(resp2==null)
+					if(resp2 != null){
+
+						if(search != "") {
+							// console.log(search)
+							
+							router.push("/admin/list/search/"+search+"/page/"+page)
+						}
+						else router.push("/admin/list/page/"+page);
+
+						store.dispatch("post/action", { action: "setPosts", payload: resp2}).then(() => {
+							if(type=="more"){
+								let lastPage = store.state.post.pages[store.state.post.pages.length - 1];
+								console.log(lastPage)
+								store.dispatch("post/action", {action: "addPages", payload: lastPage+1}).then(() => {
+									lastPage = store.state.post.pages[store.state.post.pages.length - 1];
+									store.dispatch("post/action", {action: "setPage", payload: lastPage})
+								})
+								
+							}
+							
+						})
+						
+					} 
+					else end.value = true;
+				})
+			})
+
+			
+		}
+
+		let clickMore = (e) => {
+			e.preventDefault();
+			
+			if(end.value) return
+
+			store.dispatch("post/action", {action: "setPage", payload: null})
+			loadPosts("more")
+			
+		}
+
+		let goToPage = (e, page) => {
+			e.preventDefault();
+
+			store.dispatch("post/action", {action: "setPage", payload: page});
+			loadPosts("goto");
+		}
+
+		
+
+		let goSearch = () => {
+			store.dispatch("post/action", { action: "setSearch", payload: localSearch}).then( async () =>{
+				await store.dispatch("post/action", {action: "setPages", payload: [1]})
+				await store.dispatch("post/action", {action: "setPage", payload: 1})
+				await store.dispatch("post/action", {action: "setPosts", payload: []})
+				end.value = false
+				loadPosts()
+				// console.log(store.state.post.search)
+
+			})
+		}
+
+		
+
+		watch( () => store.state.post.posts, (now, old) => {
+			// console.log(now.length)
+			if(now.length < 10) end.value = true;
+		}, { deep: true})
+
+		return {
+			end,
+			posts: computed( () => store.state.post.posts),
+			pages: computed( () => store.state.post.pages),
+			page: computed( () => store.state.post.page),
+			search: computed( () => store.state.post.search),
+			time: (value) => moment(value).format('MMM D, YYYY H:mm a '),
+			clickMore,
+			goToPage,
+			localSearch,
+			goSearch,
+		
+		}
+	}
+}
+const AdminLogin = {
+
+	template: `
+		<div>
+			<h1>Admin Login</h1>
+			<p> username <br/>
+			<input :value="user.username" @change="e=>user.username = e.target.value"/> <br/>
+			password <br/>
+			<input type="password" :value="user.password" @change="e=>user.password = e.target.value"/> <br/>
+			<button @click="login">login</button> 
+			</p>
+		</div>
+	`,
+	setup() {
+
+		let user = Vue.ref({
+			username: "",
+			password: ""
+		});
+		let store = Vuex.useStore();
+		let router = VueRouter.useRouter();
+
+
+
+		let login = async () => {
+			
+			let data = {login: [user.value.username, user.value.password]}
+			// console.log(data)
+
+			await store.dispatch('admin/action', {action: 'logout',payload: null})
+			services().server(data).then(resp => {
+				// console.log(resp)
+				if(!resp) return alert("wrong username or password");
+
+				store
+				.dispatch('admin/action', {action: 'setAdmin', payload: {...resp, logged: true}})
+				.then( () => router.push("/admin"))
+				
+
+			});
+		}
+
+		Vue.watch( () => store.state.admin, (now, old) => {
+			// console.log({now})
+		}, {deep: true})
+
+	
+
+		return {
+			user,
+			login
+		}
+	}
+}
+const App = {
+
+	template: `
+		<div>
+			<router-view/>
+			
+		</div>
+	`,
+	setup() {
+		let { server, authenticate } = services();
+		let { watch, computed, onMounted,  onBeforeUnmount} = Vue;
+		let router = VueRouter.useRouter();
+		let store = Vuex.useStore();
+		let {state: {admin}} = Vuex.useStore();
+		let logged = computed(() => admin.logged);
+		let initRoute = {init: "/", changed: false};
+
+		watch( admin, (now, old) => {
+
+			// console.log({logged: now.logged})
+			// if(now.logged) router.push("/admin");
+			// else router.push("/")
+		}, {deep: true})
+
+		onMounted( () => {
+			// console.log(moment().format('YYYY-DD-MM H:mm:ss'))
+			try {
+				let auth = JSON.parse(window.localStorage.auth)
+				store.dispatch("admin/action", {
+					action: "setAdmin", 
+					payload: {
+						admin_id: auth.id, 
+						admin_token: auth.token
+					}
+					
+				}).then( () => {
+					server({auth: ""}).then( resp => {			
+						console.log({auth: resp})
+						if(!resp) {
+							console.log("failed to authenticate")
+							return;
+						}
+						store.dispatch("admin/action", {
+							action: "setAdmin",
+							payload: {...resp, logged: true}
+						}).then( () => {
+							if(initRoute.init == "/login") router.push("/admin");
+							else router.push(initRoute.init)
+						})
+					})
+				})
+
+			}
+			catch (err) {
+				console.log({fromAuth: err})
+			} finally {
+				window.localStorage.removeItem("auth")
+			}
+		})
+		
+
+		window.onbeforeunload = () => {
+			if(admin.logged) {
+				window.localStorage.auth = JSON.stringify({
+					token: admin.admin_token, 
+					id: admin.admin_id 
+				})
+			}
+		}
+
+
+		router.beforeEach( async ( to, from ) => {
+			// console.log(to.path, from.path)
+		
+			if(!initRoute.changed) initRoute = {init: to.path, changed: true}		
+					
+			if(to.path.includes("/admin")) {
+
+				if(admin.logged) return true;
+				else {
+					router.push("/login")
+				}
+				
+			}
+			else if (to.path == "/login") {
+
+				if(admin.logged && initRoute != "/login") {
+					router.push(initRoute)
+				}
+			}
+			else return true;
+			
+		})
+
+	
+		return {
+		
+		}
+	}
+}
+let Home = {
+
+	template: `
+		<div>
+			<home_navbar />
+			<div style="height: 66px; background-color: rgba(65, 184, 131)" />
+			<div style="min-height: 225px">
+				<router-view />
+			</div>
+			<div class="bg-success bg-gradient">
+				
+				<home_footer />
+			</div>
+			
+		</div>
+	`,
+	setup () {
+
+		
+
+		return {
+
+
+			
+		}
+	}
+}
+let HomeAbout = {
+
+	template: `
+		<div class="container">
+			<div class="row justify-content-center mb-5">
+				<div class="col-12">
+					<div class="text-center mt-4">
+						<h1 class="mb-0">Vue Blog</h1>
+						<small class="text-muted">blog site portfolio by julven</small>
+						<div class="d-flex justify-content-center flex-wrap mt-3">
+							<div style="max-width:45px; max-height: 45px;" v-for="x in img">
+								<img  class="px-1 " :src="x" :alt="x" style="width: 100%;"/>
+							</div>
+							
+							
+						</div>
+					</div>
+				</div>
+				
+			</div>
+			<div class="row justify-content-center">
+				<div class="col-9 col-sm-6 col-md-5 col-lg-4 mb-5" >
+					<div style="max-width: 250px" class="d-flex mx-auto" >
+						<img class="shadow rounded mt-sm-5"
+						src="source/mug.jpg" alt="..." style="width: 100%;"/>
+					</div>
+				</div>
+				<div class="col-9 col-sm-6 col-md-5 col-lg-4 mb-5">
+					<h1 class="mb-0">Julven Condor</h1>
+					<hr class="my-0"/>
+					<p class="mt-1 text-muted">Freelance Web Developer</p>
+
+					<p class="">
+						This blog website portfolio is created using Vue 3 and web 
+						technologies such as html, javascript, css, 
+						php, mysql, and bootstrap 5.
+					</p>
+
+					<div>
+					<p class="lead mb-0">Information</p>
+					<p>
+						website: <br/> 
+						<ul>	
+							<li>
+								<a href="https://julven.000webhostapp.com">julven.000webhostapp.com </a>
+							</li>
+						</ul>
+						
+						
+					</p>
+					<p>
+						email: <br/>
+						<ul>
+							<li>julven_condor@yahoo.com</li>
+							<li>julvenici@gmail.com</li>
+						</ul>	
+						
+					</p>
+					<p>
+						contact: <br/>	
+						<ul>
+							<li>+63 927 430 9542</li>
+							<li>+1 513 204 9856</li>
+						</ul>
+
+					</p>
+				</div>
+				</div>
+				
+			</div>
+		</div>
+	`,
+	setup () {
+
+		let { ref, onMounted } = Vue;
+
+		let img = ref([
+			"source/html.png",
+			"source/css.png",
+			"source/javascript.png",
+			"source/php.png",
+			"source/mysql.png",
+			"source/bootstrap.png",
+			
+			])
+
+		onMounted( () => {
+
+		})
+
+		return {
+			img
+
+			
+		}
+	}
+}
+let HomeFooter = {
+
+	template: `
+	<div class="  container-lg pb-4 text-light">
+
+		<div class="row justify-content-center pt-5">
+			<div class="col-12 col-sm-12 col-md-3 mb-4 ">
+				<div>
+					<h1 class="mb-0">Vue Blog</h1>
+
+					<small>blog site portfolio by Julven</small>
+				</div>
+			</div>
+
+			<div class="col-12 col-sm-12 col-md-4 mb-3">
+				<div>
+					<p class="fw-bold mb-0">Julven Condor</p>
+					<hr class="mt-0">
+					<p>
+						website: <br/> 
+						<ul>	
+							<li>
+								<a href="https://julven.000webhostapp.com"
+								style=" color: white"
+								>julven.000webhostapp.com </a>
+							</li>
+						</ul>
+						
+						
+					</p>
+					<p>
+						email: <br/>
+						<ul>
+							<li>julven_condor@yahoo.com</li>
+							<li>julvenici@gmail.com</li>
+						</ul>	
+						
+					</p>
+					<p>
+						contact: <br/>	
+						<ul>
+							<li>+63 927 430 9542</li>
+							<li>+1 513 204 9856</li>
+						</ul>
+
+					</p>
+				</div>
+			</div>
+
+			<div class="col-12 col-sm-12 col-md-2 mb-3 ">
+				<div>
+					<p class="fw-bold mb-0">Site Links</p>
+					<hr class="mt-0">
+					<ul >
+						<li><router-link to="/" style=" color: white">Home</router-link></li>
+						<li><router-link to="/posts" style=" color: white">Posts</router-link></li>
+						<li><router-link to="/about" style=" color: white">About</router-link></li>
+
+					</ul>
+				</div>
+			</div>
+
+			<div class="col-12 col-sm-12 col-md-2 mb-3 ">
+				<div class="">
+					<div>
+						<p class="fw-bold mb-0">Explore</p>
+						<hr class="mt-0">
+						<ul>
+							<li>Facebook</li>
+							<li>Github</li>
+							<li>Linkdin</li>
+							<li>Skype</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	`,
+	setup () {
+
+
+
+		return {
+
+
+			
+		}
+	}
+}
+let HomeMain = {
+
+	template: `
+		<div>
+			<div v-if="loading" class="d-flex justify-content-center" style="height: 250px">
+				<div class="spinner-border text-success align-self-center" role="status" >
+				  <span class="visually-hidden">Loading...</span>
+				</div>
+			</div>
+			<div v-else>
+				
+				<home_main_recent :posts="recentPost" />
+				
+				
+				<div class="container-xl" >
+
+					<div class="row justify-content-center">
+						<div class="col-12 col-sm-11 col-md-7 col-lg-7"> 
+							<home_main_more :posts="morePost"/>
+						</div>
+
+						<div class="col-12 col-sm-11 col-md-4 col-lg-3"> 
+							<home_misc />
+						</div>
+					</div>
+			
+				</div>
+			
+			</div>
+		</div>
+	`,
+	setup () {
+
+		let { onMounted, ref, reactive, toRaw, computed, watch } = Vue;
+		let {server} = services();
+		let store = Vuex.useStore();
+		let recentPost = ref([])
+		let morePost = ref([])
+		let loading = ref(true);
+
+		onMounted( () => {
+			query.getPosts({search: "", page: 1}, true).then(resp => {
+				// console.log(resp)
+				// return;
+				server(resp).then( async resp2 => {
+
+					for( let ii = 0; ii < resp2.length; ii++) {
+						let postContents = [];
+						
+						let paragraph = await query.getContent(resp2[ii].post_hash_id, "paragraph", true);
+						let image = await query.getContent(resp2[ii].post_hash_id, "image", true);
+						let header = await query.getContent(resp2[ii].post_hash_id, "header", true);
+						let category = await query.getPostCategory(resp2[ii].post_id, true);
+
+						// console.log(JSON.stringify(category))
+						// return
+
+						let [a,b,c,d] = await Promise.all([
+							server(paragraph),
+							server(image),
+							server(header),
+							server(category)
+						])
+
+						if(a != null) postContents = [...postContents, ...a];
+						if(b != null) postContents = [...postContents, ...b];
+						if(c != null) postContents = [...postContents, ...c];
+
+						postContents.forEach( (x) => {
+
+							if(Object.keys(x).includes("paragraph_index")) {
+								x.index = x['paragraph_index'];
+							}
+							else if(Object.keys(x).includes("image_index")) {
+								x.index = x ['image_index'];
+							}
+							else {
+								x.index = x ['header_index'];
+							}
+						})
+
+						postContents.sort( (a,b) => a.index - b.index)
+					
+						
+						postContents.every( x => {
+							if(Object.keys(x).includes("paragraph_index")) {
+								// console.log(x)
+								resp2[ii].post_paragraph = x.paragraph_content;
+								return false;
+							} 
+							return true;
+						})
+						postContents.every( x => {
+							if(Object.keys(x).includes("image_index")) {
+								// console.log(x)
+								resp2[ii].post_image = x.image_path;
+								return false;
+							} 
+							return true;
+						})
+
+
+
+						resp2[ii].contents = postContents
+						resp2[ii].category = d;
+					}
+				
+					
+					let [ x, y, z, ...rest] = resp2;
+					let [aa,bb,cc,dd,ee, ...rest2] = rest;
+					// console.log([x,y,z], rest)
+					recentPost.value = [x, y, z];
+					morePost.value = [aa,bb,cc,dd,ee];
+					loading.value = false
+					
+
+				})
+			})
+		} )
+
+		watch(()=> store.state.viewer,(now,old) => {
+			// console.log(now)
+		}, {deep: true})
+
+		return {
+			recentPost,
+			morePost,
+			loading
+			
+		}
+	}
+}
+let HomeMainMore = {
+	template: `
+		<div class="" @click.prevent="">
+			<h1>More Posts</h1>
+			<div class="row my-3 justify-content-center"  v-for="x in props.posts" :key="x.post_id">
+			<hr/>
+				<div class="col-12 col-sm-8 col-md-9 col-lg-5 align-self-center"  >
+					<div style="height: 200px;" class=" mb-lg-2 text-center">
+						<img :src="x.post_image" @click="toPost(x)" 
+						style="cursor: pointer; max-width: 400px; min-width: 240px"
+						  class="own-img-cover rounded shadow-sm"/>
+					</div>
+				</div>
+
+				<div class="col-12 col-sm-10 col-md-10 col-lg-7 " >
+					<div class=" mx-1 mx-sm-3 ms-md-3 my-3">
+						<h5 class="text-capitalize"  style="cursor: pointer" @click="toPost(x)">{{x.post_title}}</h5>
+					    <h6 class="mb-0 text-muted text-capitalize"> 
+					    	By <span class="fw-bold">{{x.admin}}</span>
+					    </h6>
+					    <small > {{time(x.post_date)}}</small>
+					    <div class="own-line-clamp2" style="text-align: justify; line-height: 22px">
+					    	<p class="mt-2 ">{{x.post_paragraph}}</p>
+					    </div>
+					    
+					    <a href="/" class="" @click="toPost(x)">Read More...</a> 
+					    <p>
+					    views: 
+					    <span class="fw-bold text-muted">{{x.post_view}}</span> <br/>
+					    category: 
+					    <span v-for="(xx, ii) in x.category" 
+					    class="badge bg-success rounded-pill me-1">
+					    	{{xx.category_name}}
+					    </span> 
+					    
+					    </p> 
+					    
+					</div>
+				</div>
+
+			</div>
+			<hr/>
+			<div class="d-grid gap-2 mb-3">
+				<button type="button" class="btn  btn-outline-success btn-lg"
+				@click="router.push('/posts')">View All</button>
+			</div>
+			
+		</div>
+	`,
+	props: ['posts'],
+	setup(props) {
+
+		let {}  = Vue;
+		let router = VueRouter.useRouter();
+		let { addViews } = services();
+
+		let toPost = (x) => {
+			console.log("go to post "+x.post_id);
+			router.push("/post/"+x.post_hash_id);
+			addViews(x.post_hash_id);
+		}
+
+
+		return 	{
+			props,
+			toPost,
+			time: (date) => moment(date).format('MMM D, YYYY'),
+			router
+		}
+	}
+}
+let HomeMainRecent = {
+
+	template: `
+		<div @click="e=>e.preventDefault()" class="mb-3 shadow">
+			<div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel ">
+			  <div class="carousel-indicators">
+			    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"
+			    ref="startCycle"></button>
+			    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
+			    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
+			  </div>
+			  
+			  <div class="carousel-inner" >
+			    <div :class="'carousel-item '+(i == 0 && 'active')+' own-carousel'" 
+			    v-for="(x, i) in props.posts" data-bs-interval="5000">
+			      <img :src="x.post_image" class="own-img-cover" alt="...">
+			      <div class="carousel-caption text-start px-5 own-caption "
+			      @click="toPost(x)">
+			      <div class="own-line-clamp" style="cursor: pointer">
+			      		
+				        <h3 class="mb-0 own-outline text-capitalize">{{x.post_title}}</h3>
+				        <small class="text-muted text-capitalize">by {{x.admin}}</small>
+				        <div style="line-height: 22px">
+				        	<p class="text-light own-outline">{{x.post_paragraph}}</p>
+				        </div>
+			        </div>
+			      </div>
+			    </div>
+			    
+			  </div>
+			  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+			    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+			    <span class="visually-hidden">Previous</span>
+			  </button>
+			  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+			    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+			    <span class="visually-hidden">Next</span>
+			  </button>
+		  </div>
+			
+		</div>
+	`,
+	props: ['posts'],
+	setup (props) {
+
+		let { addViews } = services();
+		let { onMounted, watch, ref } = Vue;
+		let router = VueRouter.useRouter()
+		let startCycle = ref(null);
+
+		let toPost = (x) => {
+			console.log("go to post "+x.post_id)
+			router.push("/post/"+x.post_hash_id)
+			addViews(x.post_hash_id);
+		}
+
+		onMounted( () => {
+			
+
+			let el = document.getElementById('carouselExampleCaptions')
+			const carousel = new bootstrap.Carousel(el, {
+			  interval: 8000,
+			})
+		})
+
+		watch( () => props, (now, old) => {
+			// console.log(now)
+		}, {deep: true})
+		return {
+			props,
+			toPost,
+			startCycle
+		}
+	}
+}
+let HomeMisc = {
+	template:`
+		<div >
+		<h1>Interests</h1>
+			<div class="input-group mb-3 mt-3" style="max-width: 350px">
+			  <input type="text" class="form-control" placeholder="search post title..." 
+			  aria-label="Recipient's username" aria-describedby="button-addon2"
+			  :value="search" @change="e=>search = e.target.value">
+			  <button class="btn btn-outline-success bg-gradient" type="button" 
+			  id="button-addon2" @click="searchPosts()">Find</button>
+			</div>
+			<div class="row">
+				
+				<div class="col-12 col-sm-6 col-md-12 mb-3">
+					<div class="card shadow-sm">
+  						<div class="card-body">
+							<h3 >Popular</h3>
+							<hr class="mt-0">
+							<div v-for="x in posts" :key="x.post_id" class="mb-4 ms-2">
+								<h6 class="mb-0 text-capitalize fw-bold" style="cursor: pointer;"
+								@click="goTo(x.post_hash_id)">{{x.post_title}}</h6>
+								<p class="text-capitalize mb-0">By 
+									<span class="text-capitalize fw-bold text-muted">{{x.admin_username}}</span><br/> 
+									views: <span class="fw-bold text-muted">{{x.post_view}} </span> | 
+									date: <span class="fw-bold text-muted">{{time(x.post_date)}}</span>
+								</p> 
+								<a href="#/" @click.prevent="goTo(x.post_hash_id)">Read post</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-6 col-md-12 mb-3"> 
+					<div class="card shadow-sm">
+						<div class="card-body">
+
+						
+							<h3>Categories</h3>
+							<hr class="mt-0">
+							<div class="d-flex flex-wrap">
+								<p v-for="(x, i) in category" :title="x.category_name"
+								@click="router.push('/posts/category/'+x.category_name)" 
+								style="cursor: pointer" class="me-1  ms-2 my-0 own-hover" >
+									<span v-if="i < 9">{{x.category_name}},</span>
+								</p>
+							</div>
+
+							<a href class="me-2 ms-2" @click.prevent="router.push('/posts')"> more...</a>
+						</div>
+					</div>	
+				</div>
+			</div>
+
+			
+			<div>
+				
+			</div>
+			
+		</div>
+	`,
+	setup() {
+
+		let { server, addViews } = services();
+		let { onMounted, ref } = Vue;
+		let router = VueRouter.useRouter();
+		let store = Vuex.useStore();
+
+		let category = ref([])
+		let posts = ref([])
+		let search = ref("")
+
+		onMounted( () => {
+			loadPost();
+			loadCategory();
+		})
+
+		let loadPost = () => {
+			query.getPopularPosts().then( resp => {
+				server(resp).then(resp2 => {
+					// console.log({popular: resp2})
+					posts.value = resp2;
+				})
+			})
+		}
+
+		let loadCategory = () => {
+			query.getAllCategory(true).then(resp => {
+				server(resp).then( resp2 => {
+					category.value = resp2
+					// console.log(resp2)
+				})
+			})
+		}
+
+		let searchPosts = () => {
+			console.log(search.value)
+			if(search.value != "") router.push("/posts/search/"+search.value);
+			else router.push("/posts");
+		}
+
+		let goTo = (x) => {
+			// console.log(x)
+			router.push("/post/"+x);
+			store.dispatch("viewer/action", {action: "setLoad", payload: true})
+			store.dispatch("viewer/action", {action: "setHashId", payload: x})
+
+			addViews(x)
+			loadPost();
+
+		}
+
+
+		return {
+			goTo,
+			posts,
+			time: (date) => moment(date).format('MMM D, YYYY '),
+			category,
+			router,
+			searchPosts,
+			search
+		}
+	}
+}
+let HomeNavbar = {
+
+	template: `
+		<div @click="e=>e.preventDefault()">
+			<nav class="navbar fixed-top navbar-expand-sm shadow-sm navbar-light" style="background-color: rgba(65, 184, 131, .95) ">
+			  <div class="container">
+			    <span class="navbar-brand fs-3  text-white "> 
+			    	Vue Blog
+			    </span>
+			    <button class="navbar-toggler " id="navBttn"
+			    type="button" data-bs-toggle="collapse" 
+			    data-bs-target="#navbarNav" aria-controls="navbarNav" 
+			    aria-expanded="false" aria-label="Toggle navigation">
+			      <span class="navbar-toggler-icon "></span>
+			    </button>
+			    <div class="collapse navbar-collapse " id="navbarNav">
+			      <ul class="navbar-nav ms-auto" @click="navClick()">
+			        <li class="nav-item m-auto">
+			          <router-link class="nav-link  fs-5 text-white" aria-current="page" to="/">Home</router-link >
+			        </li>
+			        <li class="nav-item m-auto">
+			          <router-link  class="nav-link  fs-5 text-white" to="/posts">Blogs</router-link >
+			        </li>
+			        <li class="nav-item m-auto">
+			          <router-link  class="nav-link fs-5 text-white" to="/about">About</router-link >
+			        </li>
+			        
+			      </ul>
+			    </div>
+			  </div>
+			</nav>
+		</div>
+	`,
+	setup () {
+
+		let navClick = () => {
+
+			if (document.getElementById("navBttn").ariaExpanded == "true") document.getElementById("navBttn").click();
+		}
+		
+
+		return {
+
+			navClick
+
+		}
+	}
+}
+let HomePost = {
+
+	template: `
+		<div class=" mb-3" v-if="!loading">
+			<h1 class="text-capitalize mb-0">{{post.post_title}}</h1>
+			
+			<p class="text-capitalize mb-4">By {{post.admin}} on {{time(post.post_date)}}</p>
+
+			<div v-for="x in contents">	
+				<div v-if="x.paragraph_id">
+					<p class="" style="text-align: justify">{{x.paragraph_content}}</p>
+				</div>
+
+				<div v-if="x.image_id" style="max-width: 350px" class="mb-2">
+					<img :src="x.image_path" style="width: 100%" class=" shadow-sm"/><br>
+					<small class="text-secondary">{{x.image_caption}}</small>
+				</div>
+
+				<div v-if="x.header_id">
+					<h4 class="text-capitalize">{{x.header_content}}</h4>
+				</div>
+			</div>
+			<hr class="mb-3"/>
+			<p class="my-0">Views: {{post.post_view}}</p>
+			<p class="mb-0">Category: </p>
+			<span class="badge rounded-pill bg-success me-2 mb-2" v-for="xx in post.category">
+				{{xx.category_name}}
+			</span><br/>
+			
+			
+
+			<a href="#/" @click.prevent="router.go(-1)">Go back </a>
+		</div>
+	`,
+	setup () {
+
+		let { onMounted, ref, computed, watch } = Vue;
+		let route = VueRouter.useRoute();
+		let router = VueRouter.useRouter();
+		let {server} = services();
+		let store = Vuex.useStore();
+		let post = ref({})
+		let contents = ref([])
+		let postHashId = ref("")
+
+		onMounted( () => {
+			
+			if("post" in route.params) {
+				// console.log(route.params)
+				// return;
+				let hashId = route.params.post;
+				postHashId.value = hashId;
+				loadPost(hashId)
+				
+			}
+			else {
+				store.dispatch("viewer/action", {action: "setLoad", payload: false});
+				router.push("/")
+			} 
+		}) 
+		let loadPost = async (hashId) => {
+			query.getPost2(hashId, true).then(resp => {
+				// console.log(JSON.stringify(resp))
+				server(resp).then( async resp2 => {
+					// console.log(resp2)
+					if(resp2 == null){
+						router.push("/")
+						store.dispatch("viewer/action", {action: "setLoad", payload: false})
+					} 
+					else {
+
+						post.value = resp2[0];
+						loadContent(resp2, hashId);
+					}
+					
+				})
+			})
+			
+		}
+
+		let loadContent = async (resp2, hashId) => {
+			
+			let p = await query.getContent(hashId, 'paragraph', true)
+			let img = await query.getContent(hashId, 'image', true)
+			let h = await query.getContent(hashId, 'header', true)
+			let cat = await query.getPostCategory(post.value.post_id, true);
+
+			// console.log(cat);
+
+			let [a, b, c, d] = await Promise.all([
+				server(p),
+				server(img),
+				server(h),
+				server(cat)
+			])
+			let data = [];
+			if(a != null) data = [...data, ...a];
+			if(b != null) data = [...data, ...b];
+			if(c != null) data = [...data, ...c];
+
+			// console.log({d});
+			// return;
+
+			data.forEach( (x, i) => {
+				if(Object.keys(x).includes("paragraph_index")) {
+					x.index = x.paragraph_index;
+				}
+				else if (Object.keys(x).includes("image_index")) {
+					x.index = x.image_index;
+				}
+				else x.index = x.header_index;
+			})
+
+			data.sort( (a,b) => a.index - b.index);
+
+			if(d != null) post.value.category = d;
+			else  post.value.category = [];
+			contents.value = data;
+			store.dispatch("viewer/action", {action: "setLoad", payload: false})
+		}
+
+		watch( () => store.state.viewer, (now) => {
+			// console.log(post.value, now.hashId)
+			// loadContent(post.value, now.hashId)
+			loadPost(now.hashId)
+		}, { deep: true})
+
+		return {
+			post,
+			contents,
+			time: (date) => moment(date).format('MMM D, YYYY '),
+			router,
+			loading:  computed(() => store.state.viewer.loading)
+
+			
+		}
+	}
+}
+let HomePosts = {
+
+	template: `
+		<div class="container">
+
+			<div class="row justify-content-center">
+				<div class="col-12 col-sm-12 col-md-11 col-lg-9" >
+					<h1 class="mt-3">Blog list</h1>
+					<div class="input-group mb-1" style="max-width: 450px">
+					  <input type="text" class="form-control" placeholder="Blog Title..." 
+					  aria-label="Blog Title..." aria-describedby="button-addon2"
+					  :value="search" @change="e=>changeSearch(e.target.value)">
+					  
+					  <button class="btn btn-outline-secondary" type="button"
+					   id="button-addon2" @click="goSearch()">Search</button>
+					</div>
+					<p v-if="category != ''" class="mb-1 text-muted">search category: '{{category}}'</p>
+					<p v-else-if="search != ''" class="mb-1 text-muted">search: '{{search}}'</p>
+					<div v-else style="height: 25px"> </div>
+				</div>
+				
+			</div>
+
+			<div class="row justify-content-center">
+				<div class="col-12 col-sm-12 col-md-7 col-lg-6">
+
+					
+					<home_posts_list :data="posts" />
+					
+
+				    <div class="d-inline-flex">
+				     <p class="align-self-center mb-1">Pages: </p>
+				     <ul class="pagination pagination-sm mt-3 ms-2	">
+					   
+					    <li :class="'page-item '+(x == pageNow && 'active')" v-for="(x, i) in pages" >
+					    	<a class="page-link " href="#/"
+					    	:key="i" @click.prevent="goTo(x)">{{x}}</a>
+
+					    </li>
+					   
+					  </ul>
+
+					  <ul class="pagination pagination-sm mt-3 mx-2 ">
+					  	<li class="page-item ">
+					  		<a :class="' page-link '+(end && 'disabled') " href="#/"
+					  		@click.prevent="loadMore()">{{end ? "end" : "more..."}}</a>
+					  		</li>
+					  </ul>
+				    </div>
+
+				</div>
+				<div class="col-10 col-sm-12 col-md-4 col-lg-3">
+					<home_posts_category @category="e=>goCategory(e)"/>
+				</div>
+			</div>
+		
+		</div>	
+	`,
+	setup () {
+		
+		let { onMounted, ref, computed, watch } = Vue;
+		let route = VueRouter.useRoute();
+		let router = VueRouter.useRouter();
+		let {server, addViews} = services();
+		let store = Vuex.useStore();
+		let data = ref({
+				category: "",
+				search: "",
+				page: 1,
+				pages: [1],
+				posts: []
+			})
+		let end = ref(false);
+		
+
+
+		let resetData = (field) => {
+
+			if(field) data.value[field] = "";
+	
+			data.value.page = 1;
+			 data.value.pages = [1];
+			 data.value.posts = [];
+			end.value = false;
+		}
+
+		onMounted( () => {
+			evaluateParams()
+		})
+
+		let evaluateParams = () => {
+			
+			if(route.params.page) {
+				let page = 1;
+				let pages = [];
+				if(!isNaN(route.params.page)) {
+					page = Math.abs(Math.floor(Number(route.params.page)))
+				}
+				
+
+				for(var i = 1; i <= page; i++) {
+					pages.push(i)
+				}
+				data.value.pages = pages
+				data.value.page = page;
+			}
+
+			if(route.params.search) {
+				data.value.search = route.params.search
+			}
+
+			if(route.params.category) {
+				data.value.category = route.params.category
+			}
+
+			// console.log(data.value)
+
+			getPosts();
+		
+		}
+
+		let getPosts = async (type) => {
+			
+			let statement = null;
+
+			if (data.value.category != "") {
+				console.log({statement: data.value.page})
+				statement = await query.getPostsByCategory({
+					category: data.value.category,
+					page: data.value.page
+				})
+				
+			}
+			else {
+				statement = await query.getPosts({
+					search: data.value.search,
+					page: data.value.page
+				}, true);
+				
+			}
+
+			// console.log(statement)
+
+			let resp = await server(statement);
+
+
+			if(resp == null) {
+				// console.log("no results")
+				router.go(-1)
+				end.value = true;
+			}
+			else {
+
+				for(var i = 0; i < resp.length; i ++) {
+					let statement2 = await query.getPostCategory(resp[i].post_id, true)
+
+					let category = await server(statement2)
+					// console.log(category)
+					if(category != null) resp[i].category = category;
+					else resp[i].category = [];
+				}
+				
+				data.value.posts = resp
+
+				if(type=='more') {
+					// console.log(data.value.pages)
+					let newPage = data.value.pages[data.value.pages.length - 1] + 1;
+					data.value.pages.push(newPage)
+				}
+				window.scrollTo(0, 0);
+				console.log(data.value.posts)
+			}
+			
+            
+		}
+
+		let loadMore = async () => {
+			
+			
+			let page = data.value.pages[data.value.pages.length - 1] + 1;
+			data.value.page = page;
+			// console.log(page)
+			if(data.value.search != "") {
+				// console.log("has search")
+				router.push(`/posts/search/${route.params.search}/page/${page}`)
+			}
+			else if (data.value.category != "") {
+				// console.log("has category")
+				router.push(`/posts/category/${route.params.category}/page/${page}`)
+			}
+			else {
+				// console.log("default")
+				router.push(`/posts/page/${page}`)
+			}
+
+			getPosts('more')
+
+			
+		}
+
+		let goTo = async (x) => {
+			console.log({goto: x})
+	
+			data.value.page = x
+			if(data.value.search != "") {
+				router.push("/posts/search/"+data.value.search+"/page/"+x);
+			}
+			else if (data.value.category != "") {
+				router.push("/posts/category/"+data.value.category+"/page/"+x);
+			}
+			else router.push("/posts/page/"+x);
+			
+			getPosts('to')
+
+	
+		}
+
+		let goCategory = (x) => {
+			// console.log(x)
+			
+			resetData('search')
+			data.value.category = x;
+			router.push("/posts/category/"+x);
+
+			getPosts();
+		}
+
+		let goSearch = () => {
+			
+			resetData('category')
+			
+			if(data.value.search != ""){
+				router.push("/posts/search/"+data.value.search);
+			} 
+			else {
+				router.push("/posts");
+			}
+
+			getPosts();
+		}
+
+
+		watch( () => data.value, (now, old) => {
+			// console.log(now? now : false);
+			
+		}, {deep: true})
+	
+		return {
+			posts: computed(() =>  data.value.posts),
+			time: (date) => moment(date).format('MMM D, YYYY '),
+	
+			getPosts,
+			search: computed( () => data.value.search),
+			category: computed( () => data.value.category),
+			changeSearch: x => data.value.search = x,
+			pages: computed( () => data.value.pages),
+			loadMore,
+			goTo,
+			pageNow: computed( () => data.value.page),
+			end,
+			router,
+			goSearch,
+			goCategory
+		}
+	}
+}
+const HomePostsCategory = {
+	template: `
+		<div>
+			<div class="card shadow-sm">
+	  			<div class="card-body">
+					<p class="lead fw-bold mb-1">Categories</p>
+					<hr class="mt-0"/>
+
+					<div class="d-flex flex-wrap mb-3 mx-2">
+						<a v-for="x in category" :key="x.category_id"
+						style="text-decoration: none; " :title="x.category_name"
+						class="text-secondary own-hover me-1" href="#/" 
+						@click.prevent="$emit('category', x.category_name)"> 
+						{{x.category_name}},
+						</a>
+					</div>
+				</div> 
+			</div>
+		</div> 
+	`,
+	setup () {
+
+		let { onMounted, ref } = Vue;
+		let {server} = services();
+		let router = VueRouter.useRouter();
+
+		let category = ref([])
+
+		onMounted( () => {
+
+			query.getAllCategory(true).then( resp => {
+				server(resp).then( resp2 => {
+					category.value = resp2
+				})
+			})
+
+		})
+
+		return {
+			category,
+		
+		}
+	}
+}
+const HomePostsList = {
+
+	template: `
+
+		<div class="mb-3" v-for="(x, i) in posts"  :key="x.post_id" v-if="posts.length > 0">
+	     <div class="ms-3">
+
+	        <h5 class=" text-capitalize mb-0" @click="router.push('/post/'+x.post_hash_id)" 
+	        style="cursor: pointer">{{x.post_title}}</h5>
+
+	        <small class=" mb-0">
+	        	Admin: 
+	        	<span class="fw-bold text-muted text-capitalize">{{x.admin}}</span> | 
+	        	Date: 
+	        	<span class="fw-bold text-muted text-capitalize">{{time(x.post_date)}}</span> | 
+	        	Views: 
+	        	<span class="fw-bold text-muted text-capitalize">{{x.post_view}}</span>
+	        </small>
+	        <p class="mb-0">
+		        Categories: 
+		        <span class="badge rounded-pill bg-success me-2 mb-0"
+		      	v-for="xx in x.category" >
+		        	{{xx.category_name}}
+		        </span> 
+		        
+	        </p>
+	        <a href="#/" @click.prevent="router.push('/post/'+x.post_hash_id)"> read blog</a> <br/>
+	        <div class="text-end">
+	        	<small class="">id: {{x.post_hash_id}}</small>
+	        </div>
+	        	
+	        </div>
+	        
+	      <hr class="mt-0"/>
+	    </div>
+	    <p v-else >no results...</p>
+	`,
+	props: ['data'],
+	setup(props) {
+
+
+		return {
+			posts: Vue.computed( () => props.data),
+			time: (date) => moment(date).format('MMM D, YYYY '),
+			router: VueRouter.useRouter()
+		}
+	}
+}
+const HomeViewPost = {
+	template: `
+		<div class="container-md ">
+			<div class="row justify-content-center">
+				<div class="col-11 col-sm-9 col-md-7 col-lg-7 mt-3">
+					<home_post />
+				</div>
+
+				<div class="col-11 col-sm-9 col-md-4 col-lg-3 mt-3">
+					<home_misc />
+				</div>
+			</div>
+			
+		</div>
+	`,
+	setup () {
+		return {
+
+		}
+	}
+}
+const Nav = {
+	template: `
+		<div>
+			
+
+		</div>
+	`,
+
+	setup () {
+
+		return {
+
+		}
+	}
+}
+const NotFound = {
+	template: `
+		<div class="container ">
+			<h2 class="mt-3">Page Not Found</h2>
+			<router-link to="/">Home Page</router-link> |
+			<router-link to="/login">Admin Login</router-link>
+		</div>
+	`,
+	setup() {
+
+		return {
+
+		}
+	}
+}
+const Router = VueRouter.createRouter({
+	history: VueRouter.createWebHashHistory(),
+	routes: [
+		// { path: "", component:   },
+		{ path: "/", component: Home, children: [
+			{ path: "", component: HomeMain  },
+			{ path: "posts", component:  HomePosts, children: [
+				{ path: "page/:page", component: HomePosts },
+				{ path: "search/:search", component: HomePosts, children: [
+					{ path: "page/:page", component: HomePosts },
+				]},
+				{ path: "category/:category", component:  HomePosts, children :[
+					{ path: "page/:page", component:  HomePosts }
+				] },
+			]},
+			{ path: "post/:post", component:  HomeViewPost},
+			{ path: "about", component:  HomeAbout},
+			{ path: "/:pathMatch(.*)*", component: NotFound }
+		]},
+		{ path: "/admin", component: Admin, children: [
+			{ path: "", component: AdminHome},
+			{ path: "list", component: AdminList, children: [
+				{path: "", component: AdminListTable},
+				{path: "page/:page", component: AdminListTable},
+				{path: "add", component: AdminListAdd},
+				{path: "edit/:id", component: AdminListEdit},
+				{path: "search/:search", component: AdminListTable, children: [
+					{path: "page/:page", component: AdminListTable},
+				]},
+			]},
+			{ path: "account", component: AdminAccount }
+		]},
+		{ path: "/login", component: AdminLogin },
+		{ path: "/:pathMatch(.*)*", component: NotFound },
+	]
+});
+
+// Router.beforeEach( (to, from) => {
+// 	// console.log({to, from})
+
+	
+// })
+const vuexAdmin = {
+		namespaced: true,
+		state: {
+			logged: false
+		},
+		getters: {
+			state: state => {
+				return state;
+			}
+		},
+		mutations: {
+			setAdmin: ( state, payload ) => {
+				Object.keys(payload).forEach( x => {
+					state[x] = payload[x]
+				})
+			},
+			logout : (state, payload) => {
+				console.log("logout")
+				Object.keys(state).forEach( x => {
+					if(x === "logged") state[x] = false;
+					else delete state[x];
+					Router.push("/login")
+				})
+				
+			}
+		},
+		actions: {
+			action: ( { commit }, { action, payload } ) => {
+				return new Promise ( resolve => {
+					// console.log(payload)
+					commit( action, payload );
+					resolve();
+				})
+			}
+		}
+	};
+	const vuexPost = {
+		namespaced: true,
+		state: {
+			posts: [],
+			pages: [1],
+			page: 1,
+			search: "" ,
+			
+		},
+		getters: {
+			state: state => {
+				return state;
+			}
+		},
+		mutations: {
+			setPosts: (state, payload) => {
+				state.posts = payload;	
+			},
+			setPost: (state, payload) => {
+				state.posts.forEach( (x,i) => {
+					if(x.post_id == payload.post_id){
+						state.posts[i] = payload
+					} 
+				})
+			},
+			setPages: (state, payload) => {
+				state.pages = payload
+			},
+			addPages: (state, payload) => {
+				state.pages.push(payload)
+			},
+			setPage: (state, payload) => {
+				// console.log(state.page)
+				if(payload) state.page = payload;
+				else state.page = state.page + 1;
+			},
+			setSearch: (state, payload) => {
+				state.search = payload
+			},
+			deletePost: (state, payload) => {
+				
+			}
+		},
+		actions: {
+			action: ( { commit }, { action, payload } ) => {
+				return new Promise ( resolve => {
+					commit( action, payload );
+					resolve();
+				})
+			}
+		}
+	};
+	const vuexViewer = {
+		namespaced: true,
+		state: {
+			recentPost: [],
+			morePost: [],
+			loading: false,
+			hashId: "",
+		},
+		getters: {
+			state: (state) => {
+				
+				return state;
+			}
+		},
+		mutations: {
+			recentPost: (state, payload) => {
+				// console.log(payload)
+				state.recentPost = payload
+			},
+			morePost: (state, payload) => {
+				// console.log(payload)
+				state.morePost = payload
+			},
+			setLoad: (state, payload) => {
+
+				state.loading = payload
+				// console.log("loading = "+ state.loading)
+			},
+			setHashId: (state, payload) => {
+
+				state.hashId = payload
+				// console.log("loading = "+ state.loading)
+			}
+		},
+		actions: {
+			action: ( { commit }, { action, payload } ) => {
+				return new Promise ( resolve => {
+					// console.log("vuex action")
+					commit( action, payload );
+					resolve();
+				})
+			}
+		}
+	}
+	
+const store = Vuex.createStore({
+	modules: {
+		admin: vuexAdmin,
+		post: vuexPost,
+		viewer: vuexViewer
+	}
+});
+const Index =  Vue.createApp(App);
+
+Index.component("nav_page", Nav);
+Index.component("admin_login", AdminLogin);
+Index.component("admin_home", AdminHome);
+Index.component("admin_list", AdminList);
+Index.component("admin_list_add", AdminListAdd);
+Index.component("admin_list_edit", AdminListEdit);
+Index.component("admin_list_edit_add", AdminListEditAdd);
+Index.component("admin_list_edit_category",AdminListEditCategory)
+Index.component("admin_list_table", AdminListTable);
+Index.component("admin_account", AdminAccount);
+Index.component("admin_page", Admin);
+Index.component("paragraph_comp", AdminListAddParagraph);
+Index.component("image_comp", AdminListAddImage);
+Index.component("header_comp", AdminListAddHeader);
+Index.component("home_page", Home);
+Index.component("home_navbar", HomeNavbar);
+Index.component("home_posts", HomePosts);
+Index.component("home_posts_category", HomePostsCategory);
+Index.component("home_posts_list", HomePostsList);
+Index.component("home_post", HomePost);
+Index.component("home_view_post", HomeViewPost);
+Index.component("home_main", HomeMain);
+Index.component("home_main_recent", HomeMainRecent);
+Index.component("home_main_more", HomeMainMore);
+Index.component("home_misc", HomeMisc);
+Index.component("home_footer", HomeFooter);
+Index.component("not_found", NotFound);
+
+
+Index.use(store);
+Index.use(Router);
+
+Index.mount("#app");
