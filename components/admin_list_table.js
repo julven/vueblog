@@ -26,7 +26,7 @@ const  AdminListTable = {
 						<td>{{x.post_status}}</td>
 						<td>
 							<router-link :to="'/admin/list/edit/'+x.post_hash_id">edit</router-link> |
-							<a href="#/" @click="event => event.preventDefault()">view</a>
+							<router-link :to="'/post/'+x.post_hash_id" v-if="x.post_status == 'active'">view</router-link>
 						</td>
 					</tr>
 				</tbody>

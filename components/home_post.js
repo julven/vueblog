@@ -67,6 +67,10 @@ let HomePost = {
 						router.push("/")
 						store.dispatch("viewer/action", {action: "setLoad", payload: false})
 					} 
+					else if( resp2[0].post_status == 'archive') {
+						alert("this post has been archived and not available")
+						router.back()
+					}
 					else {
 
 						post.value = resp2[0];
