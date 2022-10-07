@@ -49,7 +49,8 @@ const  AdminList = {
 				search: store.state.post.search
 			}
 			query.getPosts(data).then( resp => {
-				
+				// console.log(resp)
+				// return
 				server(resp).then( async resp2 => {
 					// console.log(resp2 == null)
 					if(resp2 == null) {

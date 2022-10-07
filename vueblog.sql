@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 06, 2022 at 07:56 PM
+-- Generation Time: Oct 07, 2022 at 11:48 AM
 -- Server version: 10.4.14-MariaDB
 -- PHP Version: 7.4.9
 
@@ -24,27 +24,27 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `admin`
+-- Table structure for table `admin_blog`
 --
 
-CREATE TABLE `admin` (
+CREATE TABLE `admin_blog` (
   `admin_id` int(11) NOT NULL,
+  `admin_username` varchar(256) NOT NULL,
+  `admin_password` varchar(256) NOT NULL,
   `admin_fname` varchar(256) NOT NULL,
   `admin_lname` varchar(256) NOT NULL,
   `admin_bday` date NOT NULL,
   `admin_gender` varchar(16) NOT NULL,
-  `admin_username` varchar(256) NOT NULL,
-  `admin_password` varchar(256) NOT NULL,
-  `admin_token` varchar(256) NOT NULL,
-  `admin_token_expire` datetime NOT NULL
+  `admin_token` varchar(128) NOT NULL,
+  `admin_token_expire` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data for table `admin`
+-- Dumping data for table `admin_blog`
 --
 
-INSERT INTO `admin` (`admin_id`, `admin_fname`, `admin_lname`, `admin_bday`, `admin_gender`, `admin_username`, `admin_password`, `admin_token`, `admin_token_expire`) VALUES
-(1, 'julven', 'condor', '1990-07-07', 'male', 'admintest', 'admintest', 'a34ff17', '2022-10-07 02:14:47');
+INSERT INTO `admin_blog` (`admin_id`, `admin_username`, `admin_password`, `admin_fname`, `admin_lname`, `admin_bday`, `admin_gender`, `admin_token`, `admin_token_expire`) VALUES
+(1, 'admintest', 'admintest', 'admin', 'admin', '2000-01-01', 'male', 'ce47ed5', '2022-10-07 18:16:26');
 
 -- --------------------------------------------------------
 
@@ -104,7 +104,7 @@ INSERT INTO `category` (`category_id`, `category_name`) VALUES
 (35, 'reaction'),
 (9, 'republic'),
 (34, 'scene'),
-(18, 'security'),
+(58, 'security'),
 (21, 'song'),
 (24, 'storage'),
 (19, 'tea'),
@@ -418,7 +418,8 @@ INSERT INTO `image` (`image_id`, `image_path`, `image_caption`, `image_post_hash
 (192, 'img/image_18872.jpeg', 'test test List Add', 'usmoc', 0),
 (193, 'img/image_92676.jpeg', 'There was little doubt that the bridge was unsafe. ', 'wfils', 0),
 (194, 'img/image_49314.jpeg', 'tesetestste test', 'twuab', 6),
-(195, 'img/image_89665.jpeg', 'Eating raw fish didn\'t sound like a good idea.', 'flb9b', 4);
+(195, 'img/image_89665.jpeg', 'Eating raw fish didn\'t sound like a good idea.', 'flb9b', 4),
+(196, 'img/image_96163.jpeg', 'test', '1zzh3', 0);
 
 -- --------------------------------------------------------
 
@@ -708,7 +709,8 @@ INSERT INTO `paragraph` (`paragraph_id`, `paragraph_content`, `paragraph_index`,
 (290, 'The trail to the left had a \"Danger! Do Not Pass\" sign telling people to take the trail to the right. This wasn\'t the way Zeke approached his hiking. Rather than a warning, Zeke read the sign as an invitation to explore an area that would be adventurous and exciting. ', 2, 'wfils'),
 (291, 'The car had been hastily packed and Marta was inside trying to round up the last of the pets. Dave went through his mental list of the most important papers and documents that they couldn\'t leave behind. ', 4, 'wfils'),
 (292, 'What were they eating? It didn\'t taste like anything she had ever eaten before and although she was famished, she didn\'t dare ask. She knew the answer would be one she didn\'t want to hear.', 3, 'flb9b'),
-(293, 'What was beyond the bend in the stream was unknown. Both were curious, but only one was brave enough to want to explore. That was the problem. There was always one that let fear rule her life.', 5, 'flb9b');
+(293, 'What was beyond the bend in the stream was unknown. Both were curious, but only one was brave enough to want to explore. That was the problem. There was always one that let fear rule her life.', 5, 'flb9b'),
+(294, 'test', 1, '1zzh3');
 
 -- --------------------------------------------------------
 
@@ -818,7 +820,8 @@ INSERT INTO `post` (`post_id`, `post_hash_id`, `post_title`, `post_admin_id`, `p
 (114, 'j51tf', 'Life also has hard work', 1, '2022-10-03 22:58:39', 'archive', 45),
 (115, 'flb9b', 'She had some of the “regulars”', 1, '2022-10-03 23:05:10', 'active', 19),
 (118, 'usmoc', 'test test List Add', 1, '2022-10-03 23:51:24', 'archive', 53),
-(119, 'wfils', 'Bob didn\'t see another option', 1, '2022-10-03 23:54:30', 'active', 9);
+(119, 'wfils', 'Bob didn\'t see another option', 1, '2022-10-03 23:54:30', 'active', 9),
+(120, '1zzh3', 'test', 1, '2022-10-07 12:55:42', 'archive', 0);
 
 -- --------------------------------------------------------
 
@@ -966,7 +969,6 @@ INSERT INTO `post_category` (`post_category_id`, `post_category_post_id`, `post_
 (127, 101, 39),
 (128, 100, 42),
 (129, 101, 49),
-(130, 101, 18),
 (131, 102, 31),
 (132, 103, 33),
 (133, 103, 42),
@@ -1001,17 +1003,21 @@ INSERT INTO `post_category` (`post_category_id`, `post_category_post_id`, `post_
 (162, 118, 4),
 (168, 119, 38),
 (172, 119, 26),
-(173, 119, 15);
+(173, 119, 15),
+(174, 120, 58),
+(175, 120, 34);
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `admin`
+-- Indexes for table `admin_blog`
 --
-ALTER TABLE `admin`
-  ADD PRIMARY KEY (`admin_id`);
+ALTER TABLE `admin_blog`
+  ADD PRIMARY KEY (`admin_id`),
+  ADD UNIQUE KEY `admin_username` (`admin_username`),
+  ADD UNIQUE KEY `admin_token` (`admin_token`);
 
 --
 -- Indexes for table `category`
@@ -1055,16 +1061,16 @@ ALTER TABLE `post_category`
 --
 
 --
--- AUTO_INCREMENT for table `admin`
+-- AUTO_INCREMENT for table `admin_blog`
 --
-ALTER TABLE `admin`
+ALTER TABLE `admin_blog`
   MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `header`
@@ -1076,25 +1082,25 @@ ALTER TABLE `header`
 -- AUTO_INCREMENT for table `image`
 --
 ALTER TABLE `image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=196;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=197;
 
 --
 -- AUTO_INCREMENT for table `paragraph`
 --
 ALTER TABLE `paragraph`
-  MODIFY `paragraph_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=294;
+  MODIFY `paragraph_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=295;
 
 --
 -- AUTO_INCREMENT for table `post`
 --
 ALTER TABLE `post`
-  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
 
 --
 -- AUTO_INCREMENT for table `post_category`
 --
 ALTER TABLE `post_category`
-  MODIFY `post_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=174;
+  MODIFY `post_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=176;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

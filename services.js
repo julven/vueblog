@@ -39,7 +39,7 @@ const services = () => {
 			.then(resp => resp.text())
 			.then(resp => {
 				
-				// console.log(resp);
+				console.log(resp);
 				
 				if(resp == "error_expired_token") {
 					store.dispatch("admin/action", { action: "logout", payload :null})

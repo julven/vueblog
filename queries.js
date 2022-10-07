@@ -63,8 +63,8 @@ const query = {
 		let statement = {
 			read2: {
 				post: [
-					"select post.*, admin.admin_username as admin "+
-					"from post inner join admin on admin.admin_id = "+
+					"select post.*, admin_blog.admin_username as admin "+
+					"from post inner join admin_blog on admin_blog.admin_id = "+
 					" post.post_admin_id where post.post_title like ? "+active+
 					"order by post.post_date desc limit ?,10",
 					"si",
@@ -90,7 +90,7 @@ const query = {
 			read2: {
 				post : [
 					"select p.*, a.admin_username as admin "+
-					"from post p inner join admin a on p.post_admin_id = a.admin_id "+
+					"from post p inner join admin_blog a on p.post_admin_id = a.admin_id "+
 					"where post_hash_id = ? ", 
 					"s", 
 					[hashId]
@@ -302,7 +302,7 @@ const query = {
 		let statement = {
 			read2: {
 				admin: [
-					"select count(*) as exist from admin "+
+					"select count(*) as exist from admin_blog "+
 					"where admin_id = ? and admin_password = ?",
 					"is",
 					[data.admin_id, data.admin_password]
@@ -315,7 +315,7 @@ const query = {
 		let statement = {
 			edit: {
 				admin :[
-					"update admin set admin_password = ? where admin_id = ?",
+					"update admin_blog set admin_password = ? where admin_id = ?",
 					"si",
 					[password, id]
 				]
@@ -327,7 +327,7 @@ const query = {
 		let statement = {
 			edit: {
 				admin :[
-					"update admin set admin_fname = ?, "+
+					"update admin_blog set admin_fname = ?, "+
 					"admin_lname = ?, admin_bday = ?, "+
 					"admin_gender = ? where admin_id = ?",
 					"ssssi",
@@ -349,7 +349,7 @@ const query = {
 			read2: {
 				post: [
 					"select a.admin_username as admin_username, p.* from post p "+
-					"inner join admin a on p.post_admin_id = a.admin_id "+
+					"inner join admin_blog a on p.post_admin_id = a.admin_id "+
 					"order by p.post_view desc limit 3",
 					"",
 					[]
@@ -518,7 +518,7 @@ const query = {
 					"select distinct p.*, a.admin_username as admin from post_category pc "+
 					"inner join post p on p.post_id = pc.post_category_post_id "+
 					"inner join category c on c.category_id = pc.post_category_category_id "+
-					"inner join admin a on a.admin_id = p.post_admin_id "+
+					"inner join admin_blog a on a.admin_id = p.post_admin_id "+
 					"where c.category_name = ? limit ?,10",
 					"si",
 					[data.category,  (data.page - 1)*10]

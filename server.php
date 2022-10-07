@@ -134,7 +134,7 @@ function login () {
 		$connection = create_connection();
 		$login = json_decode($_POST['login']);
 
-		$statement = "select * from admin where admin_username = ? and admin_password = ?";
+		$statement = "select * from admin_blog where admin_username = ? and admin_password = ?";
 		$query = $connection->prepare($statement);
 		$query->bind_param("ss", ...$login);
 		$query->execute();
@@ -146,7 +146,7 @@ function login () {
 		if($result->num_rows > 0) {
 			$random = substr(md5(mt_rand()), 0, 7);
 			$expire = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s')) + 60*30);
-			$statement2 = "update admin set admin_token = '".
+			$statement2 = "update admin_blog set admin_token = '".
 			$random."', admin_token_expire ='".$expire."' where admin_id = ".
 			$data['admin_id'];
 
@@ -175,7 +175,7 @@ function login () {
 
 function authenticate () {
 	$connection = create_connection();
-	$statement = "select * from admin where admin_token = ? and admin_id =?";
+	$statement = "select * from admin_blog where admin_token = ? and admin_id =?";
 	$query = $connection->prepare($statement);
 	$query->bind_param("si", getallheaders()['token'],  getallheaders()['id']);
 	$query->execute();
@@ -188,7 +188,7 @@ function authenticate () {
 		if($date_expire > $date_now) {
 			$new_expire = date('Y-m-d H:i:s',$date_now + 60*30);
 			
-			$query2 = $connection->prepare("update admin set admin_token_expire = ? where admin_id = ?");
+			$query2 = $connection->prepare("update admin_blog set admin_token_expire = ? where admin_id = ?");
 			$query2->bind_param("si", $new_expire, $data['admin_id']);
 			$query2->execute();
 			$connection->close();
