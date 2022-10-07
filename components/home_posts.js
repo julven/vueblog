@@ -49,7 +49,7 @@ let HomePosts = {
 				    </div>
 
 				</div>
-				<div class="col-10 col-sm-12 col-md-4 col-lg-3">
+				<div class="col-12 col-sm-11 col-md-4 col-lg-3">
 					<home_posts_category @category="e=>goCategory(e)"/>
 				</div>
 			</div>

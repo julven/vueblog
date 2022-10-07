@@ -1,8 +1,8 @@
 const HomePostsCategory = {
 	template: `
 		<div>
-			<div class="card shadow-sm">
-	  			<div class="card-body">
+			<div class="card shadow-sm mb-5">
+	  			<div class="card-body ">
 					<p class="lead fw-bold mb-1">Categories</p>
 					<hr class="mt-0"/>
 

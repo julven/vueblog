@@ -24,7 +24,7 @@ const HomePostsList = {
 		        </span> 
 		        
 	        </p>
-	        <a href="#/" @click.prevent="router.push('/post/'+x.post_hash_id)"> read blog</a> <br/>
+	        <a href="#/" @click.prevent="viewPost(x.post_hash_id)"> read blog</a> <br/>
 	        <div class="text-end">
 	        	<small class="">id: {{x.post_hash_id}}</small>
 	        </div>
@@ -38,11 +38,20 @@ const HomePostsList = {
 	props: ['data'],
 	setup(props) {
 
+		let { addViews } = services()
+		let router = VueRouter.useRouter()
+
+		let viewPost = (hashId) => {
+			// console.log(hashId)
+
+			addViews(hashId)
+			router.push("/post/"+hashId)
+		}
 
 		return {
 			posts: Vue.computed( () => props.data),
 			time: (date) => moment(date).format('MMM D, YYYY '),
-			router: VueRouter.useRouter()
+			viewPost
 		}
 	}
 }

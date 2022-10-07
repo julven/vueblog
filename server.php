@@ -235,6 +235,7 @@ else if (isset($_POST["guest"])) {
 else if (isset($_POST['view'])) {
 	
 	$data = json_decode($_POST['view'], true);
+
 	execute($data, create_connection());
 }
 else {

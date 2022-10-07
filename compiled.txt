@@ -359,15 +359,18 @@ const query = {
 
 		return statement
 	},
-	addViews :(hashId) => {
+	addViews :  (hashId) => {
 		let statement = {
+			
 			view : [
 				"update post set post_view = post_view + 1 where post_hash_id = ?",
 				"s",
 				[hashId]
 			]
+			
+			
 		}
-
+	
 		return statement;
 	},
 	addPostCategory: async (data) => {
@@ -539,7 +542,7 @@ const services = () => {
 	// return console.log(data);
 
 		const SERVER_URL = 'http://localhost/vueblog/server.php';
-		// const SERVER_URL = 'https://julven.000webhostapp.com/vuesample/backend/server.php?route=';
+		// const SERVER_URL = 'https://julven.000webhostapp.com/vueblog/server.php';
 		// const test = () => console.log(store.state.account);
 
 		let form = new FormData();
@@ -571,7 +574,7 @@ const services = () => {
 			.then(resp => resp.text())
 			.then(resp => {
 				
-				console.log(resp);
+				// console.log(resp);
 				
 				if(resp == "error_expired_token") {
 					store.dispatch("admin/action", { action: "logout", payload :null})
@@ -596,7 +599,9 @@ const services = () => {
 	}
 
 	let addViews = (hashId) => {
-		console.log("add view to post "+hashId)
+		// console.log("add view to post "+hashId)
+		
+
 		let statement = query.addViews(hashId)
 		// console.log(JSON.stringify(statement))
 		server(statement)
@@ -632,88 +637,6 @@ const  Admin = {
 		let router = VueRouter.useRouter();
 
 		Vue.onMounted( () => {
-
-			let category = [
-				"possibility",
-				"charity",
-				"literature",
-				"device",
-				"guidance",
-				"permission",
-				"throat",
-				"power",
-				"republic",
-				"conclusion",
-				"environment",
-				"contribution",
-				"chapter",
-				"estate",
-				"blood",
-				"performance",
-				"queen",
-				"tea",
-				"security",
-				"establishment",
-				"product",
-				"song",
-				"girlfriend",
-				"storage",
-				"week",
-				"video",
-				"collection",
-				"atmosphere",
-				"lake",
-				"uncle",
-				"intention",
-				"photo",
-				"lab",
-				"scene",
-				"reaction",
-				"outcome",
-				"player",
-				"excitement",
-				"boyfriend",
-				"history",
-				"opinion",
-				"data",
-				"candidate",
-				"membership",
-				"personality",
-				"county",
-				"independence",
-				"control",
-				"equipment",
-				"assumption",
-
-			];
-			
-			// for( let i = 33; i < 119; i++ ) {
-			// 	let x = Math.ceil(Math.random() * 3);
-			// 	let yy = []
-			// 	let index = null
-
-			// 	for(let ii = 0; ii < x; ii++) {
-			// 		let index = Math.ceil(Math.random()*49)
-			// 		if(yy.includes(index)){
-			// 			ii--;
-			// 			continue;
-			// 		} 
-			// 		// yy.push(index)
-
-			// 		server({
-			// 			write2: {
-			// 				post_category: [
-			// 					"insert into post_category set post_category_post_id = ?,"+
-			// 					"post_category_category_id = ?",
-			// 					"ii",
-			// 					[i, index]
-			// 				]
-			// 			}
-			// 		})
-
-			// 	}
-			// 	console.log(yy)
-			// }
 
 		})
 		
@@ -2475,6 +2398,10 @@ const App = {
 		}, {deep: true})
 
 		onMounted( () => {
+			authentication();
+		})
+		
+		let authentication = () => {
 			// console.log(moment().format('YYYY-DD-MM H:mm:ss'))
 			try {
 				let auth = JSON.parse(window.localStorage.auth)
@@ -2487,9 +2414,9 @@ const App = {
 					
 				}).then( () => {
 					server({auth: ""}).then( resp => {			
-						console.log({auth: resp})
+						// console.log({auth: resp})
 						if(!resp) {
-							console.log("failed to authenticate")
+							// console.log("failed to authenticate")
 							return;
 						}
 						store.dispatch("admin/action", {
@@ -2508,8 +2435,7 @@ const App = {
 			} finally {
 				window.localStorage.removeItem("auth")
 			}
-		})
-		
+		}
 
 		window.onbeforeunload = () => {
 			if(admin.logged) {
@@ -3405,7 +3331,7 @@ let HomePosts = {
 				    </div>
 
 				</div>
-				<div class="col-10 col-sm-12 col-md-4 col-lg-3">
+				<div class="col-12 col-sm-11 col-md-4 col-lg-3">
 					<home_posts_category @category="e=>goCategory(e)"/>
 				</div>
 			</div>
@@ -3623,8 +3549,8 @@ let HomePosts = {
 const HomePostsCategory = {
 	template: `
 		<div>
-			<div class="card shadow-sm">
-	  			<div class="card-body">
+			<div class="card shadow-sm mb-5">
+	  			<div class="card-body ">
 					<p class="lead fw-bold mb-1">Categories</p>
 					<hr class="mt-0"/>
 
@@ -3690,7 +3616,7 @@ const HomePostsList = {
 		        </span> 
 		        
 	        </p>
-	        <a href="#/" @click.prevent="router.push('/post/'+x.post_hash_id)"> read blog</a> <br/>
+	        <a href="#/" @click.prevent="viewPost(x.post_hash_id)"> read blog</a> <br/>
 	        <div class="text-end">
 	        	<small class="">id: {{x.post_hash_id}}</small>
 	        </div>
@@ -3704,11 +3630,20 @@ const HomePostsList = {
 	props: ['data'],
 	setup(props) {
 
+		let { addViews } = services()
+		let router = VueRouter.useRouter()
+
+		let viewPost = (hashId) => {
+			// console.log(hashId)
+
+			addViews(hashId)
+			router.push("/post/"+hashId)
+		}
 
 		return {
 			posts: Vue.computed( () => props.data),
 			time: (date) => moment(date).format('MMM D, YYYY '),
-			router: VueRouter.useRouter()
+			viewPost
 		}
 	}
 }

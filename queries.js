@@ -359,15 +359,18 @@ const query = {
 
 		return statement
 	},
-	addViews :(hashId) => {
+	addViews :  (hashId) => {
 		let statement = {
+			
 			view : [
 				"update post set post_view = post_view + 1 where post_hash_id = ?",
 				"s",
 				[hashId]
 			]
+			
+			
 		}
-
+	
 		return statement;
 	},
 	addPostCategory: async (data) => {

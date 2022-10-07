@@ -7,7 +7,7 @@ const services = () => {
 	// return console.log(data);
 
 		const SERVER_URL = 'http://localhost/vueblog/server.php';
-		// const SERVER_URL = 'https://julven.000webhostapp.com/vuesample/backend/server.php?route=';
+		// const SERVER_URL = 'https://julven.000webhostapp.com/vueblog/server.php';
 		// const test = () => console.log(store.state.account);
 
 		let form = new FormData();
@@ -39,7 +39,7 @@ const services = () => {
 			.then(resp => resp.text())
 			.then(resp => {
 				
-				console.log(resp);
+				// console.log(resp);
 				
 				if(resp == "error_expired_token") {
 					store.dispatch("admin/action", { action: "logout", payload :null})
@@ -64,7 +64,9 @@ const services = () => {
 	}
 
 	let addViews = (hashId) => {
-		console.log("add view to post "+hashId)
+		// console.log("add view to post "+hashId)
+		
+
 		let statement = query.addViews(hashId)
 		// console.log(JSON.stringify(statement))
 		server(statement)

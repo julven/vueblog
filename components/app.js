@@ -23,6 +23,10 @@ const App = {
 		}, {deep: true})
 
 		onMounted( () => {
+			authentication();
+		})
+		
+		let authentication = () => {
 			// console.log(moment().format('YYYY-DD-MM H:mm:ss'))
 			try {
 				let auth = JSON.parse(window.localStorage.auth)
@@ -35,9 +39,9 @@ const App = {
 					
 				}).then( () => {
 					server({auth: ""}).then( resp => {			
-						console.log({auth: resp})
+						// console.log({auth: resp})
 						if(!resp) {
-							console.log("failed to authenticate")
+							// console.log("failed to authenticate")
 							return;
 						}
 						store.dispatch("admin/action", {
@@ -56,8 +60,7 @@ const App = {
 			} finally {
 				window.localStorage.removeItem("auth")
 			}
-		})
-		
+		}
 
 		window.onbeforeunload = () => {
 			if(admin.logged) {
