@@ -1,10 +1,11 @@
 const  AdminListTable = {
 	template: `
 		<div>
-			<h3> List Table</h3>
+			<h4> Posts | <router-link to="/admin/list/category">Categories</router-link></h4>
 			<input v-model="localSearch"/> 
-			<button @click="goSearch()">Search</button>
-			<router-link to="/admin/list/add"><button>Add</button></router-link>
+			<button @click="goSearch()">Search</button> |
+			<router-link to="/admin/list/add">add</router-link> |
+			
 			<table>
 				<thead>
 					 <tr>	
@@ -137,7 +138,7 @@ const  AdminListTable = {
 			pages: computed( () => store.state.post.pages),
 			page: computed( () => store.state.post.page),
 			search: computed( () => store.state.post.search),
-			time: (value) => moment(value).format('MMM D, YYYY H:mm a '),
+			time: (value) => moment(value).format('MMM D, YYYY h:mm a '),
 			clickMore,
 			goToPage,
 			localSearch,

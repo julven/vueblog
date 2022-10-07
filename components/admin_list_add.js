@@ -8,6 +8,15 @@ const  AdminListAdd = {
 				title <input :value="firstContent[0].value" 
 				@change="e=> firstContent[0].value = e.target.value"/>
 			</div>
+			
+				<admin_list_add_category 
+				:categories="categories" /><br/>
+				<span v-for="x in categories" :key="x.category_id">
+				{{x.category_name}} <a href="#/" @click.prevent="removeCategory(x)" 
+				title="delete category">x</a>, 
+				</span>
+		
+
 			<div> 
 				<img src=""/> <br/>
 				image <input type="file" accept="image/png, image/gif, image/jpeg"
@@ -47,7 +56,7 @@ const  AdminListAdd = {
 	setup () {
 		let { server } = services();
 		let randId = () => Math.random().toString(36).slice(2, 7);
-		let { ref, watch } = Vue;
+		let { ref, watch, computed } = Vue;
 		let router = VueRouter.useRouter();
 		let {state } = Vuex.useStore();
 		let firstContent = ref([
@@ -57,6 +66,7 @@ const  AdminListAdd = {
 			])
 		let choose = ref(null)
 		let content = ref([])
+		let categories = ref([])
 
 		
 
@@ -106,6 +116,17 @@ const  AdminListAdd = {
 			content.value = newContent;
 		}
 
+		let removeCategory = (x) => {
+
+			let newCategory = [];
+			categories.value.forEach( xx => {
+				if(x.category_id != xx.category_id) newCategory.push(xx) 
+			})
+
+			categories.value = newCategory
+			console.log(categories.value)
+		}
+
 		let addContent = async () => {
 
 			let arrContent = [firstContent.value[1], firstContent.value[2], ...content.value];
@@ -140,6 +161,7 @@ const  AdminListAdd = {
 
 				statements.push(statement)
 				
+				
 			}
 
 			let servers = [];
@@ -148,9 +170,24 @@ const  AdminListAdd = {
 				servers.push(() => server(x))
 			})
 
-			Promise.all(servers.map( func => func())).then(resp => {
-				alert("post submitted")
+			// console.log(servers)
+			// return;
 
+			Promise.all(servers.map( func => func())).then(resp => {
+
+				categories.value.forEach( x => {
+
+					query.addPostCategory({
+						category_id: x.category_id,
+						post_id: resp[0].insert_id
+					}).then( resp2 => {
+						server(resp2).then(resp3 => {
+							console.log({category: resp3})
+						})
+					})
+				})
+
+				alert("post submitted")
 			})
 
 		}
@@ -169,7 +206,10 @@ const  AdminListAdd = {
 			addContent,
 			router,
 			changeIndex,
-			firstContent
+			firstContent,
+		
+			categories,
+			removeCategory
 		}
 	},
 	beforeRouteLeave( to, from) {

@@ -426,6 +426,18 @@ const query = {
 
 		return statement;
 	},
+	deletePostCategorySimple: async (id) => {
+		let statement = {
+			delete: {
+				category: [
+					"delete from post_category where post_category_category_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+		return statement;
+	},
 	deleteCategory: async (id) => {
 		let statement = {
 			delete: {
@@ -485,7 +497,19 @@ const query = {
 		}
 		return statement
 	},
+	getCategoryByCategoryPost: async (id) => {
+		let statement = {
+			read2: {
+				post_category: [
+					"select count(*) as count from post_category where post_category_category_id = ?",
+					"i",
+					[id]
 
+				]
+			}
+		}
+		return statement
+	} ,
 	getPostsByCategory: async (data) => {
 		let statement = {
 			guest: "",
@@ -1013,6 +1037,15 @@ const  AdminListAdd = {
 				title <input :value="firstContent[0].value" 
 				@change="e=> firstContent[0].value = e.target.value"/>
 			</div>
+			
+				<admin_list_add_category 
+				:categories="categories" /><br/>
+				<span v-for="x in categories" :key="x.category_id">
+				{{x.category_name}} <a href="#/" @click.prevent="removeCategory(x)" 
+				title="delete category">x</a>, 
+				</span>
+		
+
 			<div> 
 				<img src=""/> <br/>
 				image <input type="file" accept="image/png, image/gif, image/jpeg"
@@ -1052,7 +1085,7 @@ const  AdminListAdd = {
 	setup () {
 		let { server } = services();
 		let randId = () => Math.random().toString(36).slice(2, 7);
-		let { ref, watch } = Vue;
+		let { ref, watch, computed } = Vue;
 		let router = VueRouter.useRouter();
 		let {state } = Vuex.useStore();
 		let firstContent = ref([
@@ -1062,6 +1095,7 @@ const  AdminListAdd = {
 			])
 		let choose = ref(null)
 		let content = ref([])
+		let categories = ref([])
 
 		
 
@@ -1111,6 +1145,17 @@ const  AdminListAdd = {
 			content.value = newContent;
 		}
 
+		let removeCategory = (x) => {
+
+			let newCategory = [];
+			categories.value.forEach( xx => {
+				if(x.category_id != xx.category_id) newCategory.push(xx) 
+			})
+
+			categories.value = newCategory
+			console.log(categories.value)
+		}
+
 		let addContent = async () => {
 
 			let arrContent = [firstContent.value[1], firstContent.value[2], ...content.value];
@@ -1145,6 +1190,7 @@ const  AdminListAdd = {
 
 				statements.push(statement)
 				
+				
 			}
 
 			let servers = [];
@@ -1153,9 +1199,24 @@ const  AdminListAdd = {
 				servers.push(() => server(x))
 			})
 
-			Promise.all(servers.map( func => func())).then(resp => {
-				alert("post submitted")
+			// console.log(servers)
+			// return;
 
+			Promise.all(servers.map( func => func())).then(resp => {
+
+				categories.value.forEach( x => {
+
+					query.addPostCategory({
+						category_id: x.category_id,
+						post_id: resp[0].insert_id
+					}).then( resp2 => {
+						server(resp2).then(resp3 => {
+							console.log({category: resp3})
+						})
+					})
+				})
+
+				alert("post submitted")
 			})
 
 		}
@@ -1174,12 +1235,143 @@ const  AdminListAdd = {
 			addContent,
 			router,
 			changeIndex,
-			firstContent
+			firstContent,
+		
+			categories,
+			removeCategory
 		}
 	},
 	beforeRouteLeave( to, from) {
 		const answer = window.confirm('Do you really want to leave? you have unsaved changes!')
   		if (!answer) return false
+	}
+}
+let AdminListAddCategory = {
+	template: `
+		<div class="">
+		category: 
+		  <a class="" href="#" role="button" id="dropdownMenuLink" 
+		  data-bs-toggle="dropdown" aria-expanded="false" title="add category">
+		    ++
+		  </a>
+
+		  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+		    <li>
+		    	<input v-model="search"/>
+		    </li>
+		    <li @click.prevent="">
+		    	<a class="dropdown-item" href="#/"
+		    	v-for="x in category" :key="x.category_id"
+		    	v-if="exists" @click="addCategory(x, $emit)">
+		    	{{x.category_name}}
+		    	</a>
+		    	<span v-else>not found </span>
+		    </li>
+		    
+		  </ul>
+		</div>
+	`,
+	props: ['categories'],
+	setup ({categories}) {
+
+		let { ref, watch, onMounted } = Vue;
+		let {server} = services();
+		let timeout = null
+		let category = ref([])
+		let refCategory = ref(categories)
+		let exists = ref(true)
+		let search = ref("")
+
+		onMounted( () => {
+			// console.log({addaCategory:categories})
+			// return	
+		})
+
+		let searching = (x) => {
+
+			
+			exists.value = true
+
+			window.clearTimeout(timeout)
+			timeout = setTimeout( async() => {
+				if(x == "") {
+					category.value = []
+
+					return;
+				} 
+				let statement = await query.getCategory(x);
+				// console.log(statement)
+				// return;
+				let resp = await server(statement);
+
+				if(resp == null) exists.value = false;
+				else {
+
+
+
+					category.value = resp
+				} 
+
+				// console.log(resp, categories)
+
+			}, 1000)
+		}
+
+		let addCategory = async (x) => {
+
+
+			// console.log(categories.length > 2);
+			// return;
+
+			if(categories.length  > 2) {
+				alert("maximum of 3 categories per post!")
+				return;
+			}
+			else if(categories.length > 0) {
+				let exists = false;
+				categories.forEach( (xx, ii) => {
+					console.log({compare: xx.category_id == x.category_id})
+
+					if(xx.category_id == x.category_id) {
+						alert("category exists")
+						exists = true
+						return;
+					}
+				})
+
+				if(!exists) categories.push(x)
+			}
+
+			else {
+				categories.push(x)
+			}
+
+			// console.log(categories)
+			
+			// search.value = "";
+			// category.value = [];
+
+
+			//  emit('emitAddCategory', categories);
+			
+			
+		}
+
+		watch(() => search.value, (now, old) => {
+			searching(now)
+		},{deep: true}) 
+
+		watch(() => categories, (now, old) => {
+			console.log({propsCategory: now})
+		},{deep: true}) 
+
+		return {
+			search,
+			category,
+			exists,
+			addCategory
+
+		}
 	}
 }
 
@@ -1297,6 +1489,137 @@ const AdminListAddParagraph = {
 	}
 }
 
+const AdminListCategory = {
+	template: `
+		<h4>Categories | <router-link to="/admin/list">Posts</router-link></h4>
+		<input v-model="search"/><button @click="getCategory()">find</button>
+
+		<ul  >
+			<li v-if="load">loading...</li>
+			<li v-for="x in list"  v-else-if="!load && list.length > 0">
+				{{x.category_name}} ({{x.count}})
+				<a href="#/" @click.prevent="" :title="x.count+' post(s)'">?</a> |
+				 <a href="#/" @click.prevent="deleteCategory(x)">x</a>
+			</li>
+			<li v-else>
+				no results. 
+				<a href="#/" @click.prevent="addCategory()">add "{{add}}?"</a>
+			</li>
+
+		</ul>
+		
+	`,
+	setup () {
+
+		let { onMounted, ref, watch } = Vue
+		let { server } = services();
+
+		let list = ref([])
+		let search = ref("")
+		let load = ref(false)
+		let add = ref("")
+		onMounted( () => {
+
+			getCategory();
+
+		})
+
+		let getCategory = async () => {
+			load.value = true
+			// console.log(search.value)
+
+			let statement = await query.readCategory(search.value)
+			let resp = await server(statement)
+
+			if(resp == null){
+				list.value = [];
+				add.value = search.value
+			} 
+			else {
+
+				let arrCount = [];
+
+				for(var i = 0; i < resp.length; i ++) {
+
+					let statement2 = await query.getCategoryByCategoryPost(resp[i].category_id)
+					arrCount.push(() => server(statement2))
+
+					// let count = await server(statement2)
+					// if(count == null) resp[i].count = 0;
+					// else  resp[i].count = count[0].count
+
+				}
+
+				let allCount = await Promise.all(arrCount.map( func => func()))
+
+				allCount.forEach( (x, i) => {
+					if(x[0].count > 0) resp[i].count = x[0].count;
+					else resp[i].count = 0;
+				})
+
+				// console.log(allCount)
+				list.value = resp
+
+			}
+			load.value = false
+			
+		}
+
+		let addCategory = async () => {
+
+			// console.log(add.value)
+			let statement = await query.addCategory(add.value)
+
+			let resp = await server(statement)
+
+			// console.log(resp)
+
+			search.value = add.value
+			getCategory()
+		}
+
+		 let deleteCategory = async (x) => {
+		 	let conf = window.confirm("delete this category: "+x.category_name+"?")
+		 	if(conf) {
+		 		// console.log(x)
+		 		let statement = await query.deleteCategory(x.category_id)
+		 		let statement2 = await query.deletePostCategorySimple(x.category_id)
+
+		 		Promise.all([
+		 			server(statement),
+		 			server(statement2)
+		 			]).then( resp => {
+		 				// console.log(resp)
+		 				// 
+		 				search.value = "";
+						add.value = "";
+						getCategory();
+		 				
+		 			})
+		 	}
+		 }
+
+		watch( () => search.value, (now, old) => {
+			
+			if(now == "") {
+				// console.log(now)
+				getCategory();
+			}
+		})
+
+		return {
+			list,
+			search,
+			getCategory,
+			load,
+			add,
+			addCategory,
+			deleteCategory
+
+
+		}
+	}
+}
 const  AdminListEdit = {
 	template: `
 		<div v-if="loaded">
@@ -1926,10 +2249,11 @@ let AdminListEditCategory = {
 const  AdminListTable = {
 	template: `
 		<div>
-			<h3> List Table</h3>
+			<h4> Posts | <router-link to="/admin/list/category">Categories</router-link></h4>
 			<input v-model="localSearch"/> 
-			<button @click="goSearch()">Search</button>
-			<router-link to="/admin/list/add"><button>Add</button></router-link>
+			<button @click="goSearch()">Search</button> |
+			<router-link to="/admin/list/add">add</router-link> |
+			
 			<table>
 				<thead>
 					 <tr>	
@@ -2062,7 +2386,7 @@ const  AdminListTable = {
 			pages: computed( () => store.state.post.pages),
 			page: computed( () => store.state.post.page),
 			search: computed( () => store.state.post.search),
-			time: (value) => moment(value).format('MMM D, YYYY H:mm a '),
+			time: (value) => moment(value).format('MMM D, YYYY h:mm a '),
 			clickMore,
 			goToPage,
 			localSearch,
@@ -3457,6 +3781,7 @@ const Router = VueRouter.createRouter({
 			{ path: "", component: AdminHome},
 			{ path: "list", component: AdminList, children: [
 				{path: "", component: AdminListTable},
+				{path: "category", component: AdminListCategory},
 				{path: "page/:page", component: AdminListTable},
 				{path: "add", component: AdminListAdd},
 				{path: "edit/:id", component: AdminListEdit},
@@ -3623,9 +3948,11 @@ Index.component("admin_login", AdminLogin);
 Index.component("admin_home", AdminHome);
 Index.component("admin_list", AdminList);
 Index.component("admin_list_add", AdminListAdd);
+Index.component("admin_list_add_category",AdminListAddCategory)
 Index.component("admin_list_edit", AdminListEdit);
 Index.component("admin_list_edit_add", AdminListEditAdd);
 Index.component("admin_list_edit_category",AdminListEditCategory)
+Index.component("admin_list_category",AdminListCategory);
 Index.component("admin_list_table", AdminListTable);
 Index.component("admin_account", AdminAccount);
 Index.component("admin_page", Admin);

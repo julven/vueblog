@@ -426,6 +426,18 @@ const query = {
 
 		return statement;
 	},
+	deletePostCategorySimple: async (id) => {
+		let statement = {
+			delete: {
+				category: [
+					"delete from post_category where post_category_category_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+		return statement;
+	},
 	deleteCategory: async (id) => {
 		let statement = {
 			delete: {
@@ -485,7 +497,19 @@ const query = {
 		}
 		return statement
 	},
+	getCategoryByCategoryPost: async (id) => {
+		let statement = {
+			read2: {
+				post_category: [
+					"select count(*) as count from post_category where post_category_category_id = ?",
+					"i",
+					[id]
 
+				]
+			}
+		}
+		return statement
+	} ,
 	getPostsByCategory: async (data) => {
 		let statement = {
 			guest: "",

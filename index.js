@@ -5,9 +5,11 @@ Index.component("admin_login", AdminLogin);
 Index.component("admin_home", AdminHome);
 Index.component("admin_list", AdminList);
 Index.component("admin_list_add", AdminListAdd);
+Index.component("admin_list_add_category",AdminListAddCategory)
 Index.component("admin_list_edit", AdminListEdit);
 Index.component("admin_list_edit_add", AdminListEditAdd);
 Index.component("admin_list_edit_category",AdminListEditCategory)
+Index.component("admin_list_category",AdminListCategory);
 Index.component("admin_list_table", AdminListTable);
 Index.component("admin_account", AdminAccount);
 Index.component("admin_page", Admin);

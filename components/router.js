@@ -21,6 +21,7 @@ const Router = VueRouter.createRouter({
 			{ path: "", component: AdminHome},
 			{ path: "list", component: AdminList, children: [
 				{path: "", component: AdminListTable},
+				{path: "category", component: AdminListCategory},
 				{path: "page/:page", component: AdminListTable},
 				{path: "add", component: AdminListAdd},
 				{path: "edit/:id", component: AdminListEdit},
