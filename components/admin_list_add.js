@@ -64,14 +64,6 @@ const  AdminListAdd = {
 					@deleting=" e=> deleteContent(e)" 
 					@index="e => changeIndex(e) "/>
 				</div>
-			<!--
-				<select ref="choose">
-					<option value="p">paragraph</option>
-					<option value="img">image</option>
-					<option value="h3">header</option>
-				</select> 
-				<button @click="setContent">Add</button> <br>
-			-->
 
 			<div class="input-group">
  				<span class="input-group-text">Add Field</span>

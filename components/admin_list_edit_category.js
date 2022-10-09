@@ -1,7 +1,7 @@
 let AdminListEditCategory = {
 	template: `
-		<div class="">
-
+		<div class="mb-3">
+		<!--
 		  <a class="" href="#" role="button" id="dropdownMenuLink" 
 		  data-bs-toggle="dropdown" aria-expanded="false">
 		    Add Category
@@ -22,6 +22,38 @@ let AdminListEditCategory = {
 		    </li>
 		    
 		  </ul>
+
+
+		  -->
+
+
+
+		  	<div class="dropdown">
+			  <button class="btn btn-sm btn-outline-success dropdown-toggle" 
+			  type="button" data-bs-toggle="dropdown" aria-expanded="false">
+			    Add Category
+			  </button>
+			  <ul class="dropdown-menu">
+			    
+			  	<li class="px-2">
+			    	<input v-model="search" 
+			    	placeholder="search..."
+			    	class="form-control form-control-sm"/>
+			    </li>
+			    <li @click.prevent="">
+
+			    	<a class="dropdown-item" href="#/"
+			    	v-for="x in category" :key="x.category_id"
+			    	v-if="exists" @click="addCategoryToPost(x, $emit)">
+			    	{{x.category_name}}
+			    	</a>
+			    	<span v-else>not found </span>
+
+			    </li>
+
+			  </ul>
+			</div>
+
 		</div>
 	`,
 	props: ['post_id', 'categories'],

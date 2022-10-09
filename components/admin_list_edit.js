@@ -1,88 +1,170 @@
 const  AdminListEdit = {
 	template: `
-		<div v-if="loaded">
-			<h3> Post Edit </h3>
-			category: <br/>
-			<span v-for="x in postTitle.category">
-				{{x.category_name}}  
-				<a href="#/" title="delete" @click.prevent="deleteCategory(x.category_id)">x</a> <br/>
-			</span> 
+		<div v-if="loaded" class="mb-4" >
+			<h3 class="mt-2"> Post Edit </h3>
 
-			<admin_list_edit_category 
-			:post_id="postTitle.post_id"
-			:categories="postTitle.category"  
-			@reloadPost="reload()"/>
+			<div class="row">
 
-			id: {{postTitle.post_hash_id}} <br/>
-			admin: {{postTitle.admin}} <br/>
-			date: {{time(postTitle.post_date)}} <br/>
-			title 
-			<span @click="e => e.preventDefault()">
-				
-				<a title="update" href="#/" @click="update(postTitle)">!!</a> <br/>
-			</span>
-			
-			<input :value="postTitle.post_title" 
-			@change="e=>postTitle.post_title = e.target.value"/>
+				<div class="col-12 col-sm-10 col-md-6">
+					<div style="max-width: 300px">
+						<div class="d-flex justify-content-between">
+							ID: 
+							<span class="fw-bold text-muted">{{postTitle.post_hash_id}} </span>
+						</div>
 
-			<div v-for=" (x,i) in postData" :key="x.paragraph_id || x.image_id || x.header_id">
-				
-				
-				<div v-if="x.paragraph_id" :key="x.paragraph_id">
+						<div class="d-flex justify-content-between">
+							Admin: 
+							<span class="fw-bold text-muted">{{postTitle.admin}} </span>
+						</div>
 
-					paragraph({{x.paragraph_id || x.image_id || x.header_id}}) |
-					<span @click="e=>e.preventDefault()">
-						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
-						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
-						<a title="delete" href="#/"  @click="deleteContent(x.paragraph_id, 'p')">x</a> |
-						<a title="update" href="#/" @click="update(x)">!!</a> <br/>
-					</span>
-					<textarea :value="x.paragraph_content" 
-					@change="e=>x.paragraph_content = e.target.value"/> 
-				</div>
-				<div v-if="x.image_id" :key="x.image_id">
-					image({{x.paragraph_id || x.image_id || x.header_id}}) |
-					<span @click="e => e.preventDefault()">
-						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
-						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
-						<a title="delete" href="#/"  @click="deleteContent(x.image_id, 'img')">x</a> |
-						<a title="update image" href="#/"
-						@click="newImage['image_'+x.image_id].click()">!!</a> <br/>
-					</span>
-					<div style="width: 200px" ref="showImage">
-						<img :src="x.image_path" :alt="x.image_path" style="width: 100%"/><br/>
+						<div class="d-flex justify-content-between">
+							Date: 
+							<span class="fw-bold text-muted"> {{time(postTitle.post_date)}} </span>
+						</div>
 					</div>
-					<input type="file" accept="image/png, image/gif, image/jpeg"
-					:ref="e=>newImage['image_'+x.image_id]=e" 
-					hidden @change="e=>imageUpdate(e, x.image_id)"/>
+				
+					<div class="mb-1">
+					  <label  class="form-labe mb-0 d-flex justify-content-between">
+					   Title:
+					  <a href="#/" @click.prevent="update(postTitle)">update</a>
+					  </label>
+					  <input :value="postTitle.post_title" @change="e=>postTitle.post_title = e.target.value"
+					  type="text" class="form-control"  placeholder="post title...">
+					</div>
 
-					<input :value="x.image_caption" @change="e=>x.image_caption=e.target.value"/> 
-					<span @click="e=>e.preventDefault()"> 
-						<a title="update caption" href="#/" @click="e=>imageUpdate(x)">!!</a>
-					</span>
+					<p class="mb-1">
+						Category: 
+						<span v-for="x in postTitle.category" class="badge rounded-pill text-bg-success me-1">
+							{{x.category_name}} 
+							<a href="#/" title="delete" class="ms-1 text-danger"
+							@click.prevent="deleteCategory(x.category_id)"> x</a> 
+						</span> 
+
+					</p>
+
+					<admin_list_edit_category 
+					:post_id="postTitle.post_id"
+					:categories="postTitle.category"  
+					@reloadPost="reload()"/>
 				</div>
-				<div v-if="x.header_id" :key="x.header_id">
-					header({{x.paragraph_id || x.image_id || x.header_id}}) |
-					<span @click="e => e.preventDefault()">
-						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
-						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
-						<a title="delete" href="#/" @click="deleteContent(x.header_id,'h')">x</a> |
-						<a title="update" href="#/" @click="update(x)">!!</a> <br/>
-					</span>
-					<input :value="x.header_content"
-					@change="e=>x.header_content = e.target.value"/>
+				
+				<div class="col-12 col-sm-10 col-md-6">
+					<div v-for=" (x,i) in postData" :key="x.paragraph_id || x.image_id || x.header_id">
+				
+				
+						<div v-if="x.paragraph_id" :key="x.paragraph_id">
+
+						<div class="mb-1">
+						  <label  class="form-label  mb-0 d-flex justify-content-between" >
+						  	<div>
+						  		Paragraph (<span class="text-muted">{{x.paragraph_id || x.image_id || x.header_id}}</span>)
+						  	</div>
+						  	<div>
+						  		<a title="move up" href="#/" @click.prevent="move(x, 'up')">&#8896;</a> |
+								<a title="move down" href="#/" @click.prevent="move(x, 'down')">&#8897;</a> |
+								<a title="delete" href="#/"  @click.prevent="deleteContent(x.paragraph_id, 'p')">&#10005;</a> |
+								<a title="update" href="#/" @click.prevent="update(x)">update</a> <br/>
+
+						  	</div>
+
+						  </label>
+						  <textarea :value="x.paragraph_content" 
+						  @change="e=>x.paragraph_content = e.target.value"
+						  class="form-control" rows="3" placeholder="paragraph..."></textarea>
+						</div>
+
+
+						</div>
+
+
+
+						<div v-if="x.image_id" :key="x.image_id">
+
+
+							<div class="mb-1">
+								  <label  class="form-label mb-0 d-flex justify-content-between">
+								  	<span>Image File({{x.paragraph_id || x.image_id || x.header_id}}) </span>
+								  	<div>
+								  		<a title="move up" href="#/" @click.prevent="move(x, 'up')">&#8896;</a> |
+										<a title="move down" href="#/" @click.prevent="move(x, 'down')">&#8897;</a> |
+										<a title="delete" href="#/"  @click.prevent="deleteContent(x.image_id, 'img')">&#10005;</a> |
+										<a title="update image" href="#/"
+										@click.prevent="newImage['image_'+x.image_id].click()">update</a> <br/>
+								  	</div>
+								  </label>
+								  <div style="width: 200px" ref="showImage" class="mx-auto shadow-sm">
+									<img :src="x.image_path" :alt="x.image_path" style="width: 100%"/><br/>
+									</div>
+								  <input  accept="image/png, image/gif, image/jpeg" 
+								  :ref="e=>newImage['image_'+x.image_id]=e"
+								  hidden @change="e=>imageUpdate(e, x.image_id)"
+							  	class="form-control" type="file" >
+							</div>	
+
+							<div class="mb-1">
+							  <label class="form-labe mb-0 d-flex justify-content-between">
+							 	 Image Caption
+							 	 <a href="#/"  @click.prevent="e=>imageUpdate(x)">update</a>
+							  </label>
+							  <input :value="x.image_caption"
+							 @change="e=>x.image_caption=e.target.value"
+							  type="text" class="form-control"  placeholder="image caption...">
+							</div>
+
+						</div>
+
+
+
+
+						<div v-if="x.header_id" :key="x.header_id">
+
+							<div class="mb-1">
+							  <label  class="form-labe mb-0 d-flex justify-content-between">
+							   <span>Header ({{x.paragraph_id || x.image_id || x.header_id}})</span> 
+							  <div>
+						  		<a title="move up" href="#/" @click.prevent="move(x, 'up')">&#8896;</a> |
+								<a title="move down" href="#/" @click.prevent="move(x, 'down')">&#8897;</a> |
+								<a title="delete" href="#/"  @click.prevent="deleteContent(x.image_id, 'img')">&#10005;</a> |
+								<a title="update" href="#/" @click.prevent="update(x)">update</a> <br/>
+						  	</div>
+							  </label>
+							  <input :value="x.header_content" 
+							  @change="e=>x.header_content = e.target.value"
+							  type="text" class="form-control"  placeholder="header...">
+							</div>
+
+
+
+						</div>
+					</div>
+					<admin_list_edit_add 
+					@contentadded="e => loadPost(e.hashId)"
+					:post="postTitle"
+					:content_length="postData.length"/>
+
+					<!--
+
+					<button @click="router.go(-1)"> back</button> 
+					<button @click="changeStatus(postTitle.post_id, false)" 
+					v-if="postTitle.post_status=='active'"> archive</button> 
+					<button @click="changeStatus(postTitle.post_id, true)" 
+					v-else> activate</button> 
+
+					-->
+
+
+					<div class="col-12">
+						<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
+						  <button  @click="router.go(-1)"
+						  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
+				   			<button @click="addContent()" v-if="postTitle.post_status=='active'"
+						  class="btn btn-outline-warning" type="button">Archive</button>
+						  <button  @click="addContent()" v-else
+						  class="btn btn-success" type="button">Activate</button>
+						</div>
+					</div>	
 				</div>
 			</div>
-			<admin_list_edit_add 
-			@contentadded="e => loadPost(e.hashId)"
-			:post="postTitle"
-			:content_length="postData.length"/>
-
-			<button @click="router.go(-1)"> back</button> 
-			<button @click="changeStatus(postTitle.post_id, false)" 
-			v-if="postTitle.post_status=='active'"> archive</button> 
-			<button @click="changeStatus(postTitle.post_id, true)" 
-			v-else> activate</button> 
 		
 		</div>
 	`,

@@ -1,28 +1,60 @@
 let AdminListEditAdd = {
 	
 	template: `
-		<div>
+		<div class="mt-5">
 
 			<div v-if="select=='p'">
-				add paragraph <br/>
-				<textarea @change="e=>field = e.target.value"/>
+
+				<textarea @change="e=>field = e.target.value"
+			  	class="form-control  mt-3" rows="3" placeholder="Add paragraph..."></textarea>
+
+
 			</div>
+
+
 			<div v-if="select=='img'">
-				add image<br/>
-				<input type="file" @change="e=>field['file'] = e.target.files[0]"/><br/>
-				caption<br/>
-				<input @change="e=>field['caption'] = e.target.value"/>
+		
+				<input  accept="image/png, image/gif, image/jpeg" 
+			 	 @change="e=>field['file'] = e.target.files[0]"
+			  	class="form-control mt-3 mb-1" type="file" >
+
+			  	<div class="mb-1">
+				  <input @change="e=>field['caption'] = e.target.value"
+				  type="text" class="form-control"  placeholder="add image caption...">
+				</div>
+
 			</div>
+
+
+
+
 			<div v-if="select=='h3'">
-				add header<br/>
-				<input @change="e=>field = e.target.value"/>
+
+				<input @change="e=>field = e.target.value"
+			 	 type="text" class="form-control"  placeholder="add header...">
+
+
+
 			</div>
-			<select  @change="e=>selecting(e.target.value)">
-				<option value="p">paragraph</option>
+
+
+			<div class="input-group mt-3">
+ 				<span class="input-group-text">New</span>
+			  <select class="form-select"  @change="e=>selecting(e.target.value)"
+			  aria-label="Example select with button addon">
+			
+			  	<option value="p">paragraph</option>
 				<option value="img">image</option>
 				<option value="h3">header</option>
-			</select> 
-			<button @click="addContent(props.post.post_hash_id, props.content_length, $emit)">Add</button> <br>
+			  </select>
+			  
+			  <button class="btn btn-outline-success" 
+			  @click="addContent(props.post.post_hash_id, props.content_length, $emit)">Add</button>
+			</div>
+
+
+
+			
 			
 			
 

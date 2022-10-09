@@ -949,13 +949,13 @@ const  AdminList = {
 			<ul class="nav nav-tabs" id="myTab" role="tablist">
 			  <li class="nav-item" role="presentation">
 			    <button @click.prevent="router.push('/admin/list/')"
-			    class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">
+			    :class="'nav-link '+(tab? '':'active')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">
 			    Posts
 			    </button>
 			  </li>
 			  <li class="nav-item" role="presentation">
 			    <button @click.prevent="router.push('/admin/list/category')"
-			    class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">
+			    :class="'nav-link '+(tab? 'active':'')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">
 			    Categories
 			    </button>
 			  </li>
@@ -973,12 +973,17 @@ const  AdminList = {
 		let {onMounted, ref, computed, watch} = Vue;
 		let store = Vuex.useStore();
 		let router = VueRouter.useRouter();
-		let { params } = VueRouter.useRoute();
+		let { params, path } = VueRouter.useRoute();
+		let tab = ref(false)
 		
 
 		onMounted( () => {
 			// console.log(params.page, !isNaN(Number(params.page)))
-			// console.log(params)
+			console.log(router)
+
+			if(path.includes("category")) {
+				tab.value = true
+			}
 
 			if("page" in params) {
 				if(!isNaN(Number(params.page))){
@@ -1037,7 +1042,8 @@ const  AdminList = {
 		}, {deep: true})
 
 		return {
-			router
+			router,
+			tab
 		}	
 	}
 }
@@ -1107,14 +1113,6 @@ const  AdminListAdd = {
 					@deleting=" e=> deleteContent(e)" 
 					@index="e => changeIndex(e) "/>
 				</div>
-			<!--
-				<select ref="choose">
-					<option value="p">paragraph</option>
-					<option value="img">image</option>
-					<option value="h3">header</option>
-				</select> 
-				<button @click="setContent">Add</button> <br>
-			-->
 
 			<div class="input-group">
  				<span class="input-group-text">Add Field</span>
@@ -1589,17 +1587,35 @@ const AdminListAddParagraph = {
 
 const AdminListCategory = {
 	template: `
-		<h4>Categories | <router-link to="/admin/list">Posts</router-link></h4>
-		<input v-model="search"/><button @click="getCategory()">find</button>
+		<div class="d-flex my-3">
+			<div class="input-group " style="max-width: 350px">
+			  <input v-model="search"
+			  type="text" class="form-control" placeholder="category name..." >
+			  <button   @click="getCategory()"
+			  class="btn btn-outline-success" type="button">Find</button>
+			</div> 
+			
+			
+		</div>	
 
-		<ul  >
-			<li v-if="load">loading...</li>
-			<li v-for="x in list"  v-else-if="!load && list.length > 0">
-				{{x.category_name}} ({{x.count}})
-				<a href="#/" @click.prevent="" :title="x.count+' post(s)'">?</a> |
-				 <a href="#/" @click.prevent="deleteCategory(x)">x</a>
+		<ul class="list-group list-group-flush" >
+			<li class="list-group-item" v-if="load">loading...</li>
+			<li style="max-width: 300px" 
+			class="list-group-item d-flex justify-content-between" 
+			v-for="x in list"  v-else-if="!load && list.length > 0">
+				
+				 <div>
+				 	{{x.category_name}} 
+					 <span :title="x.count+' post(s)'"
+					  class="badge bg-success rounded-pill">{{x.count}}</span>
+					  
+				  </div>
+				  
+				  <a href="#/" title="delete category" 
+				  @click.prevent="deleteCategory(x)"
+				  class="badge bg-danger rounded-pill">x</a>
 			</li>
-			<li v-else>
+			<li class="list-group-item" v-else>
 				no results. 
 				<a href="#/" @click.prevent="addCategory()">add "{{add}}?"</a>
 			</li>
@@ -1720,89 +1736,171 @@ const AdminListCategory = {
 }
 const  AdminListEdit = {
 	template: `
-		<div v-if="loaded">
-			<h3> Post Edit </h3>
-			category: <br/>
-			<span v-for="x in postTitle.category">
-				{{x.category_name}}  
-				<a href="#/" title="delete" @click.prevent="deleteCategory(x.category_id)">x</a> <br/>
-			</span> 
+		<div v-if="loaded" class="mb-4" >
+			<h3 class="mt-2"> Post Edit </h3>
 
-			<admin_list_edit_category 
-			:post_id="postTitle.post_id"
-			:categories="postTitle.category"  
-			@reloadPost="reload()"/>
+			<div class="row">
 
-			id: {{postTitle.post_hash_id}} <br/>
-			admin: {{postTitle.admin}} <br/>
-			date: {{time(postTitle.post_date)}} <br/>
-			title 
-			<span @click="e => e.preventDefault()">
-				
-				<a title="update" href="#/" @click="update(postTitle)">!!</a> <br/>
-			</span>
-			
-			<input :value="postTitle.post_title" 
-			@change="e=>postTitle.post_title = e.target.value"/>
+				<div class="col-12 col-sm-10 col-md-6">
+					<div style="max-width: 300px">
+						<div class="d-flex justify-content-between">
+							ID: 
+							<span class="fw-bold text-muted">{{postTitle.post_hash_id}} </span>
+						</div>
 
-			<div v-for=" (x,i) in postData" :key="x.paragraph_id || x.image_id || x.header_id">
-				
-				
-				<div v-if="x.paragraph_id" :key="x.paragraph_id">
+						<div class="d-flex justify-content-between">
+							Admin: 
+							<span class="fw-bold text-muted">{{postTitle.admin}} </span>
+						</div>
 
-					paragraph({{x.paragraph_id || x.image_id || x.header_id}}) |
-					<span @click="e=>e.preventDefault()">
-						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
-						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
-						<a title="delete" href="#/"  @click="deleteContent(x.paragraph_id, 'p')">x</a> |
-						<a title="update" href="#/" @click="update(x)">!!</a> <br/>
-					</span>
-					<textarea :value="x.paragraph_content" 
-					@change="e=>x.paragraph_content = e.target.value"/> 
-				</div>
-				<div v-if="x.image_id" :key="x.image_id">
-					image({{x.paragraph_id || x.image_id || x.header_id}}) |
-					<span @click="e => e.preventDefault()">
-						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
-						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
-						<a title="delete" href="#/"  @click="deleteContent(x.image_id, 'img')">x</a> |
-						<a title="update image" href="#/"
-						@click="newImage['image_'+x.image_id].click()">!!</a> <br/>
-					</span>
-					<div style="width: 200px" ref="showImage">
-						<img :src="x.image_path" :alt="x.image_path" style="width: 100%"/><br/>
+						<div class="d-flex justify-content-between">
+							Date: 
+							<span class="fw-bold text-muted"> {{time(postTitle.post_date)}} </span>
+						</div>
 					</div>
-					<input type="file" accept="image/png, image/gif, image/jpeg"
-					:ref="e=>newImage['image_'+x.image_id]=e" 
-					hidden @change="e=>imageUpdate(e, x.image_id)"/>
+				
+					<div class="mb-1">
+					  <label  class="form-labe mb-0 d-flex justify-content-between">
+					   Title:
+					  <a href="#/" @click.prevent="update(postTitle)">update</a>
+					  </label>
+					  <input :value="postTitle.post_title" @change="e=>postTitle.post_title = e.target.value"
+					  type="text" class="form-control"  placeholder="post title...">
+					</div>
 
-					<input :value="x.image_caption" @change="e=>x.image_caption=e.target.value"/> 
-					<span @click="e=>e.preventDefault()"> 
-						<a title="update caption" href="#/" @click="e=>imageUpdate(x)">!!</a>
-					</span>
+					<p class="mb-1">
+						Category: 
+						<span v-for="x in postTitle.category" class="badge rounded-pill text-bg-success me-1">
+							{{x.category_name}} 
+							<a href="#/" title="delete" class="ms-1 text-danger"
+							@click.prevent="deleteCategory(x.category_id)"> x</a> 
+						</span> 
+
+					</p>
+
+					<admin_list_edit_category 
+					:post_id="postTitle.post_id"
+					:categories="postTitle.category"  
+					@reloadPost="reload()"/>
 				</div>
-				<div v-if="x.header_id" :key="x.header_id">
-					header({{x.paragraph_id || x.image_id || x.header_id}}) |
-					<span @click="e => e.preventDefault()">
-						<a title="move up" href="#/" @click="move(x, 'up')">-</a> |
-						<a title="move down" href="#/" @click="move(x, 'down')">+</a> |
-						<a title="delete" href="#/" @click="deleteContent(x.header_id,'h')">x</a> |
-						<a title="update" href="#/" @click="update(x)">!!</a> <br/>
-					</span>
-					<input :value="x.header_content"
-					@change="e=>x.header_content = e.target.value"/>
+				
+				<div class="col-12 col-sm-10 col-md-6">
+					<div v-for=" (x,i) in postData" :key="x.paragraph_id || x.image_id || x.header_id">
+				
+				
+						<div v-if="x.paragraph_id" :key="x.paragraph_id">
+
+						<div class="mb-1">
+						  <label  class="form-label  mb-0 d-flex justify-content-between" >
+						  	<div>
+						  		Paragraph (<span class="text-muted">{{x.paragraph_id || x.image_id || x.header_id}}</span>)
+						  	</div>
+						  	<div>
+						  		<a title="move up" href="#/" @click.prevent="move(x, 'up')">&#8896;</a> |
+								<a title="move down" href="#/" @click.prevent="move(x, 'down')">&#8897;</a> |
+								<a title="delete" href="#/"  @click.prevent="deleteContent(x.paragraph_id, 'p')">&#10005;</a> |
+								<a title="update" href="#/" @click.prevent="update(x)">update</a> <br/>
+
+						  	</div>
+
+						  </label>
+						  <textarea :value="x.paragraph_content" 
+						  @change="e=>x.paragraph_content = e.target.value"
+						  class="form-control" rows="3" placeholder="paragraph..."></textarea>
+						</div>
+
+
+						</div>
+
+
+
+						<div v-if="x.image_id" :key="x.image_id">
+
+
+							<div class="mb-1">
+								  <label  class="form-label mb-0 d-flex justify-content-between">
+								  	<span>Image File({{x.paragraph_id || x.image_id || x.header_id}}) </span>
+								  	<div>
+								  		<a title="move up" href="#/" @click.prevent="move(x, 'up')">&#8896;</a> |
+										<a title="move down" href="#/" @click.prevent="move(x, 'down')">&#8897;</a> |
+										<a title="delete" href="#/"  @click.prevent="deleteContent(x.image_id, 'img')">&#10005;</a> |
+										<a title="update image" href="#/"
+										@click.prevent="newImage['image_'+x.image_id].click()">update</a> <br/>
+								  	</div>
+								  </label>
+								  <div style="width: 200px" ref="showImage" class="mx-auto shadow-sm">
+									<img :src="x.image_path" :alt="x.image_path" style="width: 100%"/><br/>
+									</div>
+								  <input  accept="image/png, image/gif, image/jpeg" 
+								  :ref="e=>newImage['image_'+x.image_id]=e"
+								  hidden @change="e=>imageUpdate(e, x.image_id)"
+							  	class="form-control" type="file" >
+							</div>	
+
+							<div class="mb-1">
+							  <label class="form-labe mb-0 d-flex justify-content-between">
+							 	 Image Caption
+							 	 <a href="#/"  @click.prevent="e=>imageUpdate(x)">update</a>
+							  </label>
+							  <input :value="x.image_caption"
+							 @change="e=>x.image_caption=e.target.value"
+							  type="text" class="form-control"  placeholder="image caption...">
+							</div>
+
+						</div>
+
+
+
+
+						<div v-if="x.header_id" :key="x.header_id">
+
+							<div class="mb-1">
+							  <label  class="form-labe mb-0 d-flex justify-content-between">
+							   <span>Header ({{x.paragraph_id || x.image_id || x.header_id}})</span> 
+							  <div>
+						  		<a title="move up" href="#/" @click.prevent="move(x, 'up')">&#8896;</a> |
+								<a title="move down" href="#/" @click.prevent="move(x, 'down')">&#8897;</a> |
+								<a title="delete" href="#/"  @click.prevent="deleteContent(x.image_id, 'img')">&#10005;</a> |
+								<a title="update" href="#/" @click.prevent="update(x)">update</a> <br/>
+						  	</div>
+							  </label>
+							  <input :value="x.header_content" 
+							  @change="e=>x.header_content = e.target.value"
+							  type="text" class="form-control"  placeholder="header...">
+							</div>
+
+
+
+						</div>
+					</div>
+					<admin_list_edit_add 
+					@contentadded="e => loadPost(e.hashId)"
+					:post="postTitle"
+					:content_length="postData.length"/>
+
+					<!--
+
+					<button @click="router.go(-1)"> back</button> 
+					<button @click="changeStatus(postTitle.post_id, false)" 
+					v-if="postTitle.post_status=='active'"> archive</button> 
+					<button @click="changeStatus(postTitle.post_id, true)" 
+					v-else> activate</button> 
+
+					-->
+
+
+					<div class="col-12">
+						<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
+						  <button  @click="router.go(-1)"
+						  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
+				   			<button @click="addContent()" v-if="postTitle.post_status=='active'"
+						  class="btn btn-outline-warning" type="button">Archive</button>
+						  <button  @click="addContent()" v-else
+						  class="btn btn-success" type="button">Activate</button>
+						</div>
+					</div>	
 				</div>
 			</div>
-			<admin_list_edit_add 
-			@contentadded="e => loadPost(e.hashId)"
-			:post="postTitle"
-			:content_length="postData.length"/>
-
-			<button @click="router.go(-1)"> back</button> 
-			<button @click="changeStatus(postTitle.post_id, false)" 
-			v-if="postTitle.post_status=='active'"> archive</button> 
-			<button @click="changeStatus(postTitle.post_id, true)" 
-			v-else> activate</button> 
 		
 		</div>
 	`,
@@ -2141,28 +2239,60 @@ const  AdminListEdit = {
 let AdminListEditAdd = {
 	
 	template: `
-		<div>
+		<div class="mt-5">
 
 			<div v-if="select=='p'">
-				add paragraph <br/>
-				<textarea @change="e=>field = e.target.value"/>
+
+				<textarea @change="e=>field = e.target.value"
+			  	class="form-control  mt-3" rows="3" placeholder="Add paragraph..."></textarea>
+
+
 			</div>
+
+
 			<div v-if="select=='img'">
-				add image<br/>
-				<input type="file" @change="e=>field['file'] = e.target.files[0]"/><br/>
-				caption<br/>
-				<input @change="e=>field['caption'] = e.target.value"/>
+		
+				<input  accept="image/png, image/gif, image/jpeg" 
+			 	 @change="e=>field['file'] = e.target.files[0]"
+			  	class="form-control mt-3 mb-1" type="file" >
+
+			  	<div class="mb-1">
+				  <input @change="e=>field['caption'] = e.target.value"
+				  type="text" class="form-control"  placeholder="add image caption...">
+				</div>
+
 			</div>
+
+
+
+
 			<div v-if="select=='h3'">
-				add header<br/>
-				<input @change="e=>field = e.target.value"/>
+
+				<input @change="e=>field = e.target.value"
+			 	 type="text" class="form-control"  placeholder="add header...">
+
+
+
 			</div>
-			<select  @change="e=>selecting(e.target.value)">
-				<option value="p">paragraph</option>
+
+
+			<div class="input-group mt-3">
+ 				<span class="input-group-text">New</span>
+			  <select class="form-select"  @change="e=>selecting(e.target.value)"
+			  aria-label="Example select with button addon">
+			
+			  	<option value="p">paragraph</option>
 				<option value="img">image</option>
 				<option value="h3">header</option>
-			</select> 
-			<button @click="addContent(props.post.post_hash_id, props.content_length, $emit)">Add</button> <br>
+			  </select>
+			  
+			  <button class="btn btn-outline-success" 
+			  @click="addContent(props.post.post_hash_id, props.content_length, $emit)">Add</button>
+			</div>
+
+
+
+			
 			
 			
 
@@ -2238,8 +2368,8 @@ let AdminListEditAdd = {
 }
 let AdminListEditCategory = {
 	template: `
-		<div class="">
-
+		<div class="mb-3">
+		<!--
 		  <a class="" href="#" role="button" id="dropdownMenuLink" 
 		  data-bs-toggle="dropdown" aria-expanded="false">
 		    Add Category
@@ -2260,6 +2390,38 @@ let AdminListEditCategory = {
 		    </li>
 		    
 		  </ul>
+
+
+		  -->
+
+
+
+		  	<div class="dropdown">
+			  <button class="btn btn-sm btn-outline-success dropdown-toggle" 
+			  type="button" data-bs-toggle="dropdown" aria-expanded="false">
+			    Add Category
+			  </button>
+			  <ul class="dropdown-menu">
+			    
+			  	<li class="px-2">
+			    	<input v-model="search" 
+			    	placeholder="search..."
+			    	class="form-control form-control-sm"/>
+			    </li>
+			    <li @click.prevent="">
+
+			    	<a class="dropdown-item" href="#/"
+			    	v-for="x in category" :key="x.category_id"
+			    	v-if="exists" @click="addCategoryToPost(x, $emit)">
+			    	{{x.category_name}}
+			    	</a>
+			    	<span v-else>not found </span>
+
+			    </li>
+
+			  </ul>
+			</div>
+
 		</div>
 	`,
 	props: ['post_id', 'categories'],

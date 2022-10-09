@@ -1,16 +1,34 @@
 const AdminListCategory = {
 	template: `
-		<h4>Categories | <router-link to="/admin/list">Posts</router-link></h4>
-		<input v-model="search"/><button @click="getCategory()">find</button>
+		<div class="d-flex my-3">
+			<div class="input-group " style="max-width: 350px">
+			  <input v-model="search"
+			  type="text" class="form-control" placeholder="category name..." >
+			  <button   @click="getCategory()"
+			  class="btn btn-outline-success" type="button">Find</button>
+			</div> 
+			
+			
+		</div>	
 
-		<ul  >
-			<li v-if="load">loading...</li>
-			<li v-for="x in list"  v-else-if="!load && list.length > 0">
-				{{x.category_name}} ({{x.count}})
-				<a href="#/" @click.prevent="" :title="x.count+' post(s)'">?</a> |
-				 <a href="#/" @click.prevent="deleteCategory(x)">x</a>
+		<ul class="list-group list-group-flush" >
+			<li class="list-group-item" v-if="load">loading...</li>
+			<li style="max-width: 300px" 
+			class="list-group-item d-flex justify-content-between" 
+			v-for="x in list"  v-else-if="!load && list.length > 0">
+				
+				 <div>
+				 	{{x.category_name}} 
+					 <span :title="x.count+' post(s)'"
+					  class="badge bg-success rounded-pill">{{x.count}}</span>
+					  
+				  </div>
+				  
+				  <a href="#/" title="delete category" 
+				  @click.prevent="deleteCategory(x)"
+				  class="badge bg-danger rounded-pill">x</a>
 			</li>
-			<li v-else>
+			<li class="list-group-item" v-else>
 				no results. 
 				<a href="#/" @click.prevent="addCategory()">add "{{add}}?"</a>
 			</li>

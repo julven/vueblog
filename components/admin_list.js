@@ -5,13 +5,13 @@ const  AdminList = {
 			<ul class="nav nav-tabs" id="myTab" role="tablist">
 			  <li class="nav-item" role="presentation">
 			    <button @click.prevent="router.push('/admin/list/')"
-			    class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">
+			    :class="'nav-link '+(tab? '':'active')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">
 			    Posts
 			    </button>
 			  </li>
 			  <li class="nav-item" role="presentation">
 			    <button @click.prevent="router.push('/admin/list/category')"
-			    class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">
+			    :class="'nav-link '+(tab? 'active':'')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">
 			    Categories
 			    </button>
 			  </li>
@@ -29,12 +29,17 @@ const  AdminList = {
 		let {onMounted, ref, computed, watch} = Vue;
 		let store = Vuex.useStore();
 		let router = VueRouter.useRouter();
-		let { params } = VueRouter.useRoute();
+		let { params, path } = VueRouter.useRoute();
+		let tab = ref(false)
 		
 
 		onMounted( () => {
 			// console.log(params.page, !isNaN(Number(params.page)))
-			// console.log(params)
+			console.log(router)
+
+			if(path.includes("category")) {
+				tab.value = true
+			}
 
 			if("page" in params) {
 				if(!isNaN(Number(params.page))){
@@ -93,7 +98,8 @@ const  AdminList = {
 		}, {deep: true})
 
 		return {
-			router
+			router,
+			tab
 		}	
 	}
 }
