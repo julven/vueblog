@@ -2,13 +2,18 @@
 const AdminListAddHeader = {
 	props: ['data'],
 	template: `
-		<div> 
-			<div>
-				header({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
-			
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a> <br/>
-				<input :value="data.value" @change="e => data.value = e.target.value"/>
+		<div class="mb-2"> 
+			<div class="mb-1">
+			  <label class="form-labe mb-0">
+			  	Image Caption ({{data.id}})
+		  		<a  href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">top</a> |
+				<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">down</a> |
+				<a href="#/" @click="e => emitDelete(e, $emit)">close</a> 
+
+			  </label>
+			  <input :value="data.value"
+			  @change="e => data.value = e.target.value"
+			  type="text" class="form-control"  placeholder="header...">
 			</div>
 		</div>
 	`,

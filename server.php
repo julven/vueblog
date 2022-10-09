@@ -50,6 +50,7 @@ function query_statement () {
 		
 
 		if ($key == "read2") {
+			if (!isset($_POST["guest"])) authenticate();
 
 			$data = $new_value[array_keys($new_value)[0]];
 

@@ -7,11 +7,11 @@ let HomeNavbar = {
 			    <span class="navbar-brand fs-3  text-white "> 
 			    	Vue Blog
 			    </span>
-			    <button class="navbar-toggler " id="navBttn"
+			    <button class="navbar-toggler" id="navBttn"
 			    type="button" data-bs-toggle="collapse" 
 			    data-bs-target="#navbarNav" aria-controls="navbarNav" 
 			    aria-expanded="false" aria-label="Toggle navigation">
-			      <span class="navbar-toggler-icon "></span>
+			      <span class="text-white fs-1">&#9776;</span>
 			    </button>
 			    <div class="collapse navbar-collapse " id="navbarNav">
 			      <ul class="navbar-nav ms-auto" @click="navClick()">

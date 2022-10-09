@@ -1,13 +1,21 @@
 const AdminListAddParagraph = {
 	props: ['data'],
 	template: `
-		<div>
-			paragraph({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
-			
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a> 
-			<br/>
-			<textarea :value="data.value" @change="e => data.value = e.target.value" />
+		<div  class="mb-2">
+			<div class="mb-1">
+			  	<label>
+					Paragraph ({{data.id}}) 
+					
+					<a  href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">top</a> |
+					<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">down</a> |
+					<a href="#/" @click="e => emitDelete(e, $emit)">close</a> 
+				</label>
+			  <textarea :value="data.value"
+			 	@change="e => data.value = e.target.value"
+			  class="form-control" rows="3" placeholder="paragraph..."></textarea>
+			</div>
+		
+
 		</div>
 	`,
 	setup ({data}) {

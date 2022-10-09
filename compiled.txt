@@ -616,17 +616,32 @@ const services = () => {
 }
 const  Admin = {
 	template: `
-		<div>
-			<h1>Admin </h1>
-			<div>
-				<p> 
-				<router-link to="/admin"> Home </router-link> |
-				<router-link to="/admin/list"> List </router-link> |
-				<router-link to="/admin/account"> Account </router-link> |
-				<a href="#/" @click="logout">Logout</a>
-				</p>
+		<nav class="navbar fixed-top navbar-expand-sm bg-success shadow-sm">
+		  <div class="container " @click.prevent="">
+		    <a class="navbar-brand  text-white" href="#">Admin</a>
+		    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+		      <span class="text-white fs-1">&#9776;</span>
+		    </button>
+		    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+		      <div class="navbar-nav  text-white text-center">
 
-			</div>
+		      	<router-link to="/admin"  class="nav-link active  text-white"> Home </router-link>
+		      	<router-link to="/admin/list" class="nav-link  text-white"> List </router-link>
+		      	<router-link to="/admin/account" class="nav-link  text-white"> Account </router-link>
+
+		     
+		       
+		      </div>
+		      <div class="navbar-nav ms-auto  text-center">
+
+		      	<a href="#/" class="nav-link  text-white" @click="logout">Logout</a>
+
+		      </div>
+		    </div>
+		  </div>
+		</nav>
+		<div style="height: 65px"/>
+		<div class="container">
 			<router-view />
 		</div>
 	`,
@@ -808,32 +823,88 @@ const  AdminAccount = {
 }
 const AdminHome = {
 	template: `
-		
-			<h1> Home</h1>
-			<div class="d-flex flex-wrap">
-			<div class="m-2">
-				<h2>Account Info</h2>
-				<p>
-					username: {{vuex.admin_username}} <br/>
-					id: {{vuex.admin_id}}<br/>
-					name: {{vuex.admin_fname}} {{vuex.admin_lname}} <br/>
-					sex: {{vuex.admin_gender}} <br/>
-					birthday: {{vuex.admin_bday}} <br/>
-					<router-link to="/admin/account">view</router-link>
+		<div class="mt-3">
+			<h2>Home</h2>
+			<div class="row justify-content-center">
+				<div class="col-12 col-sm-6 col-md-5 col-lg-4">
+						<div class="card mb-3" style="max-width: 300px">
+						  <div class="card-body" >
+						    <h5 class="card-title">Admin Info</h5>
+						    <hr class="mt-0"/>
+						    
+						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">Username:</p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			{{vuex.admin_username}}
+						   		</p>
+						   	</div>
 
-				</p>
-			</div>
+					   		<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">ID:</p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			{{vuex.admin_id}}
+						   		</p>
+						   	</div>
 
-			<div class="m-2">
-				<h2>Post Summary</h2>
-				<p>
-					total: {{summary.total}} <br/>
-					archived: {{summary.archive}}  <br/>
-					categories: {{summary.categories}} <br/>
- 
-					<router-link to="/admin/list">view</router-link>
+						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">Name:</p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			{{vuex.admin_fname}} {{vuex.admin_lname}}
+						   		</p>
+						   		
+						   	</div>
 
-				</p>
+						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">Gender: </p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			{{vuex.admin_gender}}
+						   		</p>
+						   	</div>
+
+						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">Birthday: </p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			{{time(vuex.admin_bday)}}
+						   		</p>
+						   	</div>
+							    <router-link to="/admin/account">View</router-link>
+						  </div>
+							
+						</div>
+				</div>
+				<div class="col-12 col-sm-6 col-md-5 col-lg-4">
+						<div class="card mb-3 " style="max-width: 300px" >
+						  <div class="card-body">
+						    <h5 class="card-title">List Summary</h5>
+						    <hr class="mt-0"/>
+						    
+						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">Total:</p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			{{summary.total}}
+						   		</p>
+						   	</div>
+
+					   		<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">Archived: </p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			{{summary.archive}}
+						   		</p>
+						   	</div>
+
+						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   		<p class="mb-1">Categories::</p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   			 {{summary.categories}}
+						   		</p>
+						   		
+						   	</div>
+
+						   	<router-link to="/admin/list">View</router-link>
+						  </div>
+						</div>
+				</div>
+
 			</div>
 		</div>
 	`,
@@ -866,13 +937,32 @@ const AdminHome = {
 		
 		return {
 			vuex: computed( () => admin),
-			summary
+			summary,
+			time: (date) => moment(date).format('MMM D, YYYY '),
 		}
 	}
 }
 const  AdminList = {
 	template: `
 		<div>
+			
+			<ul class="nav nav-tabs" id="myTab" role="tablist">
+			  <li class="nav-item" role="presentation">
+			    <button @click.prevent="router.push('/admin/list/')"
+			    class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">
+			    Posts
+			    </button>
+			  </li>
+			  <li class="nav-item" role="presentation">
+			    <button @click.prevent="router.push('/admin/list/category')"
+			    class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">
+			    Categories
+			    </button>
+			  </li>
+			 
+			  
+			</ul>
+			
 			<router-view />
 			
 		</div>
@@ -947,7 +1037,7 @@ const  AdminList = {
 		}, {deep: true})
 
 		return {
-			
+			router
 		}	
 	}
 }
@@ -955,55 +1045,103 @@ const  AdminList = {
 const  AdminListAdd = {
 
 	template: `
-		<div>
-			<h3> List Add</h3>
-			<div>
-				title <input :value="firstContent[0].value" 
-				@change="e=> firstContent[0].value = e.target.value"/>
-			</div>
-			
-				<admin_list_add_category 
-				:categories="categories" /><br/>
-				<span v-for="x in categories" :key="x.category_id">
-				{{x.category_name}} <a href="#/" @click.prevent="removeCategory(x)" 
-				title="delete category">x</a>, 
-				</span>
 		
+		<div class="row">
+			<div class="col-12 col-sm-6">
+				<h3 class="mt-2">Create Post</h3>
+				<div class="mb-1">
+				  <label  class="form-labe mb-0">Title</label>
+				  <input :value="firstContent[0].value" @change="e=> firstContent[0].value = e.target.value"
+				  type="text" class="form-control"  placeholder="post title...">
+				</div>
 
-			<div> 
-				<img src=""/> <br/>
-				image <input type="file" accept="image/png, image/gif, image/jpeg"
-				@change="e => firstContent[1].value = e.target.files[0]"/><br/>
-				caption <input :value="firstContent[1].cap"
-				@change="e=> firstContent[1].cap = e.target.value"/>
-			</div>
-			<div>
-				paragraph <br/>
-				<textarea :value="firstContent[2].value"
-				@change="e=> firstContent[2].value = e.target.value"/>
-			</div>
-			<div v-for=" (x, i) in content" :key="x.id">
-				<paragraph_comp v-if="x.type==='p'" 
-				:data="x" 
-				@deleting=" e=> deleteContent(e)" 
-				@index="e => changeIndex(e) "/>
-				<image_comp v-if="x.type==='img'" 
-				:data="x" 
-				@deleting=" e=> deleteContent(e)" 
-				@index="e => changeIndex(e) "/>
-				<header_comp v-if="x.type==='h3'" 
-				:data="x" 
-				@deleting=" e=> deleteContent(e)" 
-				@index="e => changeIndex(e) "/>
+				<p class="my-1">
+					Category: 
+					<span v-for="x in categories" 
+					class=" fw-bold text-white badge text-bg-success me-1 rounded-pill">
+						{{x.category_name}}  
+						<a  class="text-danger"
+						href="#/" @click.prevent="removeCategory(x)" 
+						title="delete category"> x
+						</a>
+					</span>
+				</p>
+				<admin_list_add_category :categories="categories" />
+
+
+				<div class="mb-1">
+				  <label  class="form-label mb-0">Image File</label>
+				  <input  accept="image/png, image/gif, image/jpeg" 
+				  @change="e => firstContent[1].value = e.target.files[0]" 
+				  class="form-control" type="file" >
+				</div>
+
+				<div class="mb-1">
+				  <label class="form-labe mb-0">Image Caption</label>
+				  <input :value="firstContent[1].cap" 
+				  @change="e=> firstContent[1].cap = e.target.value"
+				  type="text" class="form-control"  placeholder="image caption...">
+				</div>
+
+				<div class="mb-1">
+				  <label  class="form-label  mb-0" >Paragraph</label>
+				  <textarea :value="firstContent[2].value" 
+				  @change="e=> firstContent[2].value = e.target.value"
+				  class="form-control" rows="3" placeholder="paragraph..."></textarea>
+				</div>
 			</div>
 
-			<select ref="choose">
-				<option value="p">paragraph</option>
+			<div class="col-12 col-sm-6">
+				<h3 class="mt-2">Post Content</h3>
+				<div v-for=" (x, i) in content" :key="x.id">
+					<paragraph_comp v-if="x.type==='p'" 
+					:data="x" 
+					@deleting=" e=> deleteContent(e)" 
+					@index="e => changeIndex(e) "/>
+					<image_comp v-if="x.type==='img'" 
+					:data="x" 
+					@deleting=" e=> deleteContent(e)" 
+					@index="e => changeIndex(e) "/>
+					<header_comp v-if="x.type==='h3'" 
+					:data="x" 
+					@deleting=" e=> deleteContent(e)" 
+					@index="e => changeIndex(e) "/>
+				</div>
+			<!--
+				<select ref="choose">
+					<option value="p">paragraph</option>
+					<option value="img">image</option>
+					<option value="h3">header</option>
+				</select> 
+				<button @click="setContent">Add</button> <br>
+			-->
+
+			<div class="input-group">
+ 				<span class="input-group-text">Add Field</span>
+			  <select class="form-select" ref="choose"
+			  aria-label="Example select with button addon">
+			
+			  	<option value="p">paragraph</option>
 				<option value="img">image</option>
 				<option value="h3">header</option>
-			</select> <button @click="setContent">Add</button> <br>
-			<button @click="addContent">Submit</button>
-			<button @click="() => router.go(-1)"> Back </button>
+			  </select>
+			  <button class="btn btn-outline-success" 
+			  @click="setContent" type="button">Add</button>
+			</div>
+
+
+			</div>
+
+			<div class="col-12">
+				<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
+				  <button 
+				  @click="router.go(-1)"
+				  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
+				  <button 
+				  @click="addContent()"
+				  class="btn btn-success" type="button">Submit</button>
+				</div>
+			</div>	
 		</div>
 	`,
 	setup () {
@@ -1081,6 +1219,9 @@ const  AdminListAdd = {
 		}
 
 		let addContent = async () => {
+
+			console.log(firstContent.value, categories.value, content.value)
+			return
 
 			let arrContent = [firstContent.value[1], firstContent.value[2], ...content.value];
 			let statements = [];
@@ -1172,27 +1313,33 @@ const  AdminListAdd = {
 }
 let AdminListAddCategory = {
 	template: `
-		<div class="">
-		category: 
-		  <a class="" href="#" role="button" id="dropdownMenuLink" 
-		  data-bs-toggle="dropdown" aria-expanded="false" title="add category">
-		    ++
-		  </a>
+		<div class="mb-2">
 
-		  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-		    <li>
-		    	<input v-model="search"/>
-		    </li>
-		    <li @click.prevent="">
-		    	<a class="dropdown-item" href="#/"
-		    	v-for="x in category" :key="x.category_id"
-		    	v-if="exists" @click="addCategory(x, $emit)">
-		    	{{x.category_name}}
-		    	</a>
-		    	<span v-else>not found </span>
-		    </li>
-		    
-		  </ul>
+			<div class="dropdown">
+			  <button class="btn btn-sm btn-success dropdown-toggle" 
+			  type="button" data-bs-toggle="dropdown" aria-expanded="false">
+			    Add Category
+			  </button>
+			  <ul class="dropdown-menu">
+			    
+			  	<li class="px-2">
+			    	<input v-model="search" 
+			    	placeholder="search..."
+			    	class="form-control form-control-sm"/>
+			    </li>
+			    <li @click.prevent="">
+			    	<a class="dropdown-item" href="#/"
+			    	v-for="x in category" :key="x.category_id"
+			    	v-if="exists" @click="addCategory(x, $emit)">
+			    	{{x.category_name}}
+			    	</a>
+			    	<span v-else>not found </span>
+			    </li>
+
+			  </ul>
+			</div>
+
+
 		</div>
 	`,
 	props: ['categories'],
@@ -1302,13 +1449,18 @@ let AdminListAddCategory = {
 const AdminListAddHeader = {
 	props: ['data'],
 	template: `
-		<div> 
-			<div>
-				header({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
-			
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a> <br/>
-				<input :value="data.value" @change="e => data.value = e.target.value"/>
+		<div class="mb-2"> 
+			<div class="mb-1">
+			  <label class="form-labe mb-0">
+			  	Image Caption ({{data.id}})
+		  		<a  href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">top</a> |
+				<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">down</a> |
+				<a href="#/" @click="e => emitDelete(e, $emit)">close</a> 
+
+			  </label>
+			  <input :value="data.value"
+			  @change="e => data.value = e.target.value"
+			  type="text" class="form-control"  placeholder="header...">
 			</div>
 		</div>
 	`,
@@ -1339,15 +1491,29 @@ const AdminListAddHeader = {
 const AdminListAddImage = {
 	props: ['data'],
 	template: `
-		<div> 
-			<img src=""/> <br/>
-			image({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
-			
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a>  <br/>
-			<input type="file" @change="e => data.value = e.target.files[0]"
-			accept="image/png, image/gif, image/jpeg"/><br/>
-			caption <input @change="e => data.cap = e.target.value"/>
+		<div  class="mb-2"> 
+	
+
+			<div class="mb-1">
+			  <label  class="form-label mb-0">
+			  	Image File({{data.id}})
+
+				<a  href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">top</a> |
+				<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">down</a> |
+				<a href="#/" @click="e => emitDelete(e, $emit)">close</a> 
+
+			  </label>
+			  <input  accept="image/png, image/gif, image/jpeg" 
+			 	@change="e => data.value = e.target.files[0]"
+			  class="form-control" type="file" >
+			</div>
+
+			<div class="mb-1">
+			  <label class="form-labe mb-0">Image Caption</label>
+			  <input :value="data.cap" 
+			 @change="e => data.cap = e.target.value"
+			  type="text" class="form-control"  placeholder="image caption...">
+			</div>
 		</div>
 	`,
 	setup ({data}) {
@@ -1377,13 +1543,21 @@ const AdminListAddImage = {
 const AdminListAddParagraph = {
 	props: ['data'],
 	template: `
-		<div>
-			paragraph({{data.id}}) <a href="#/" @click="e => emitDelete(e, $emit)">x</a> |
-			
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">-</a> |
-			<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">+</a> 
-			<br/>
-			<textarea :value="data.value" @change="e => data.value = e.target.value" />
+		<div  class="mb-2">
+			<div class="mb-1">
+			  	<label>
+					Paragraph ({{data.id}}) 
+					
+					<a  href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">top</a> |
+					<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">down</a> |
+					<a href="#/" @click="e => emitDelete(e, $emit)">close</a> 
+				</label>
+			  <textarea :value="data.value"
+			 	@change="e => data.value = e.target.value"
+			  class="form-control" rows="3" placeholder="paragraph..."></textarea>
+			</div>
+		
+
 		</div>
 	`,
 	setup ({data}) {
@@ -2172,51 +2346,73 @@ let AdminListEditCategory = {
 }
 const  AdminListTable = {
 	template: `
-		<div>
-			<h4> Posts | <router-link to="/admin/list/category">Categories</router-link></h4>
-			<input v-model="localSearch"/> 
-			<button @click="goSearch()">Search</button> |
-			<router-link to="/admin/list/add">add</router-link> |
-			
-			<table>
-				<thead>
-					 <tr>	
-					 	<th>ID</th>
-					 	<th>title</th>
-					 	<th>date</th>
-					 	<th>admin</th>
-					 	<th>status</th>
-					 	<th>action</th>
-					 </tr>
-				</thead>
-				<tbody>
-					<tr v-for="x in posts" :key="x.post_id">
-						<td>{{x.post_id}}</td>
-						<td>{{x.post_title}}</td>
-						<td>{{time(x.post_date)}}</td>
-						<td>{{x.admin}}</td>
-						<td>{{x.post_status}}</td>
-						<td>
-							<router-link :to="'/admin/list/edit/'+x.post_hash_id">edit</router-link> |
-							<router-link :to="'/post/'+x.post_hash_id" v-if="x.post_status == 'active'">view</router-link>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+		<div class="row">
+			<div class="col-12">
+				<div class="d-flex my-3">
+					<div class="input-group " style="max-width: 350px">
+					  <input v-model="localSearch"
+					  type="text" class="form-control" placeholder="Post title..." aria-label="Recipient's username" aria-describedby="button-addon2">
+					  <button  @click="goSearch()"
+					  class="btn btn-outline-success" type="button" id="button-addon2">Find</button>
+					</div> 
+					<router-link to="/admin/list/add" class="btn btn-success ms-1">New</router-link>
+				</div>			
+			</div>
 
-			<p> 
-				page(s) 
-				<span v-for="(x, i) in pages" >
-				
-					<router-link v-if="x != page"
-					:to="'/admin/list/page/'+x" 
-					@click="(e)=>goToPage(e,x)">{{x}}</router-link> 
-					<span v-else>{{x}}</span>|
-					
-				</span>
-				<span  v-if="end">end</span >
-				<a href="#/" @click="e => clickMore(e)" v-else> more...</a>
-			</p>
+			<div class="col-12">
+
+				<div class="card shadow-sm mb-2" v-for="x in posts" :key="x.post_id">
+				  <div class="card-body">
+				   	<div class="row">
+				   		<div class="col-12 col-sm-6 col-md-6 align-self-center">
+				   			<small class="text-muted">admin: <b> {{x.admin}}</b> | 
+				   			date: <b>{{time(x.post_date)}}</b></small>
+				   			<p class="mb-0 fw-bold text-truncate" :title="x.post_title">{{x.post_title}}</p>
+				   		</div>
+				   		<div class="col-12 col-sm-6 col-md-3 align-self-center">
+				   			<small class="text-muted">ID: <b>{{x.post_hash_id}} </b><br/>
+				   			Status: <b :class="x.post_status == 'active' ? 'text-success':'text-danger' ">{{x.post_status}}</b></small>
+						</div>
+						<div class="col-12 col-sm-12 col-md-3 align-self-center text-end">
+							<div>
+								<router-link :to="'/admin/list/edit/'+x.post_hash_id">edit</router-link> |
+								<span v-if="x.post_status == 'active'">
+									<router-link :to="'/post/'+x.post_hash_id"  >view</router-link>
+								</span>
+								<span v-else class="text-muted" title="not viewable when archived">
+									view
+								</span>
+								
+							</div>
+						</div>
+
+				   	</div>
+				  </div>
+				</div>
+
+			</div>
+
+			<div class="col-12">
+				<div class="d-inline-flex">
+				     <p class="align-self-center mb-1">Pages: </p>
+				     <ul class="pagination pagination-sm mt-3 ms-2	">
+					   
+					    <li class="page-item" v-for="(x, i) in pages" >
+					    	<a class="page-link " href="#/"
+					    	:key="i" @click.prevent="(e)=>goToPage(e,x)">{{x}}</a>
+
+					    </li>
+					   
+					  </ul>
+
+					  <ul class="pagination pagination-sm mt-3 mx-2 ">
+					  	<li class="page-item ">
+					  		<a class=" page-link " href="#/"
+					  		@click="e=>clickMore(e)">more...</a>
+					  		</li>
+					  </ul>
+				    </div>
+			</div>
 		</div>
 	`,
 	setup () {
@@ -2322,14 +2518,36 @@ const  AdminListTable = {
 const AdminLogin = {
 
 	template: `
-		<div>
-			<h1>Admin Login</h1>
-			<p> username <br/>
-			<input :value="user.username" @change="e=>user.username = e.target.value"/> <br/>
-			password <br/>
-			<input type="password" :value="user.password" @change="e=>user.password = e.target.value"/> <br/>
-			<button @click="login">login</button> 
-			</p>
+		<div class="container">
+			<div class="row justify-content-center mt-5">
+				<div class="col-auto col-sm-7 col-md-6 col-lg-5 ">
+					<div class="card shadow-sm" style="max-width: 350px">
+					  <div class="card-body">
+					    <h5 class="card-title">Admin Login</h5>
+					    <div class="mb-1">
+						    <label  class="form-label mb-0">Username</label>
+						    <input :value="user.username" @change="e=>user.username = e.target.value"
+						    type="text" class="form-control"  aria-describedby="emailHelp">
+						
+						  </div>
+
+  					    <div class="mb-3 ">
+						    <label class="form-label mb-0">Password</label>
+						    <input :value="user.password" @change="e=>user.password = e.target.value"
+						    type="Password" class="form-control" aria-describedby="emailHelp">
+						  
+						  </div>
+						  <div class="text-end">
+						  	<button 
+						  	@click="login"
+						  	type="button" class="btn btn-success">Login</button>
+						  </div>
+						  
+					  </div>
+					</div>
+				</div>
+			</div>
+
 		</div>
 	`,
 	setup() {
@@ -3099,11 +3317,11 @@ let HomeNavbar = {
 			    <span class="navbar-brand fs-3  text-white "> 
 			    	Vue Blog
 			    </span>
-			    <button class="navbar-toggler " id="navBttn"
+			    <button class="navbar-toggler" id="navBttn"
 			    type="button" data-bs-toggle="collapse" 
 			    data-bs-target="#navbarNav" aria-controls="navbarNav" 
 			    aria-expanded="false" aria-label="Toggle navigation">
-			      <span class="navbar-toggler-icon "></span>
+			      <span class="text-white fs-1">&#9776;</span>
 			    </button>
 			    <div class="collapse navbar-collapse " id="navbarNav">
 			      <ul class="navbar-nav ms-auto" @click="navClick()">
@@ -3881,6 +4099,9 @@ const store = Vuex.createStore({
 		viewer: vuexViewer
 	}
 });
+// window.console.log = function ()  {}
+
+
 const Index =  Vue.createApp(App);
 
 Index.component("nav_page", Nav);

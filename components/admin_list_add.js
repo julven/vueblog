@@ -2,55 +2,103 @@
 const  AdminListAdd = {
 
 	template: `
-		<div>
-			<h3> List Add</h3>
-			<div>
-				title <input :value="firstContent[0].value" 
-				@change="e=> firstContent[0].value = e.target.value"/>
-			</div>
-			
-				<admin_list_add_category 
-				:categories="categories" /><br/>
-				<span v-for="x in categories" :key="x.category_id">
-				{{x.category_name}} <a href="#/" @click.prevent="removeCategory(x)" 
-				title="delete category">x</a>, 
-				</span>
 		
+		<div class="row">
+			<div class="col-12 col-sm-6">
+				<h3 class="mt-2">Create Post</h3>
+				<div class="mb-1">
+				  <label  class="form-labe mb-0">Title</label>
+				  <input :value="firstContent[0].value" @change="e=> firstContent[0].value = e.target.value"
+				  type="text" class="form-control"  placeholder="post title...">
+				</div>
 
-			<div> 
-				<img src=""/> <br/>
-				image <input type="file" accept="image/png, image/gif, image/jpeg"
-				@change="e => firstContent[1].value = e.target.files[0]"/><br/>
-				caption <input :value="firstContent[1].cap"
-				@change="e=> firstContent[1].cap = e.target.value"/>
-			</div>
-			<div>
-				paragraph <br/>
-				<textarea :value="firstContent[2].value"
-				@change="e=> firstContent[2].value = e.target.value"/>
-			</div>
-			<div v-for=" (x, i) in content" :key="x.id">
-				<paragraph_comp v-if="x.type==='p'" 
-				:data="x" 
-				@deleting=" e=> deleteContent(e)" 
-				@index="e => changeIndex(e) "/>
-				<image_comp v-if="x.type==='img'" 
-				:data="x" 
-				@deleting=" e=> deleteContent(e)" 
-				@index="e => changeIndex(e) "/>
-				<header_comp v-if="x.type==='h3'" 
-				:data="x" 
-				@deleting=" e=> deleteContent(e)" 
-				@index="e => changeIndex(e) "/>
+				<p class="my-1">
+					Category: 
+					<span v-for="x in categories" 
+					class=" fw-bold text-white badge text-bg-success me-1 rounded-pill">
+						{{x.category_name}}  
+						<a  class="text-danger"
+						href="#/" @click.prevent="removeCategory(x)" 
+						title="delete category"> x
+						</a>
+					</span>
+				</p>
+				<admin_list_add_category :categories="categories" />
+
+
+				<div class="mb-1">
+				  <label  class="form-label mb-0">Image File</label>
+				  <input  accept="image/png, image/gif, image/jpeg" 
+				  @change="e => firstContent[1].value = e.target.files[0]" 
+				  class="form-control" type="file" >
+				</div>
+
+				<div class="mb-1">
+				  <label class="form-labe mb-0">Image Caption</label>
+				  <input :value="firstContent[1].cap" 
+				  @change="e=> firstContent[1].cap = e.target.value"
+				  type="text" class="form-control"  placeholder="image caption...">
+				</div>
+
+				<div class="mb-1">
+				  <label  class="form-label  mb-0" >Paragraph</label>
+				  <textarea :value="firstContent[2].value" 
+				  @change="e=> firstContent[2].value = e.target.value"
+				  class="form-control" rows="3" placeholder="paragraph..."></textarea>
+				</div>
 			</div>
 
-			<select ref="choose">
-				<option value="p">paragraph</option>
+			<div class="col-12 col-sm-6">
+				<h3 class="mt-2">Post Content</h3>
+				<div v-for=" (x, i) in content" :key="x.id">
+					<paragraph_comp v-if="x.type==='p'" 
+					:data="x" 
+					@deleting=" e=> deleteContent(e)" 
+					@index="e => changeIndex(e) "/>
+					<image_comp v-if="x.type==='img'" 
+					:data="x" 
+					@deleting=" e=> deleteContent(e)" 
+					@index="e => changeIndex(e) "/>
+					<header_comp v-if="x.type==='h3'" 
+					:data="x" 
+					@deleting=" e=> deleteContent(e)" 
+					@index="e => changeIndex(e) "/>
+				</div>
+			<!--
+				<select ref="choose">
+					<option value="p">paragraph</option>
+					<option value="img">image</option>
+					<option value="h3">header</option>
+				</select> 
+				<button @click="setContent">Add</button> <br>
+			-->
+
+			<div class="input-group">
+ 				<span class="input-group-text">Add Field</span>
+			  <select class="form-select" ref="choose"
+			  aria-label="Example select with button addon">
+			
+			  	<option value="p">paragraph</option>
 				<option value="img">image</option>
 				<option value="h3">header</option>
-			</select> <button @click="setContent">Add</button> <br>
-			<button @click="addContent">Submit</button>
-			<button @click="() => router.go(-1)"> Back </button>
+			  </select>
+			  <button class="btn btn-outline-success" 
+			  @click="setContent" type="button">Add</button>
+			</div>
+
+
+			</div>
+
+			<div class="col-12">
+				<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
+				  <button 
+				  @click="router.go(-1)"
+				  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
+				  <button 
+				  @click="addContent()"
+				  class="btn btn-success" type="button">Submit</button>
+				</div>
+			</div>	
 		</div>
 	`,
 	setup () {
@@ -128,6 +176,9 @@ const  AdminListAdd = {
 		}
 
 		let addContent = async () => {
+
+			console.log(firstContent.value, categories.value, content.value)
+			return
 
 			let arrContent = [firstContent.value[1], firstContent.value[2], ...content.value];
 			let statements = [];

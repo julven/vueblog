@@ -1,3 +1,6 @@
+// window.console.log = function ()  {}
+
+
 const Index =  Vue.createApp(App);
 
 Index.component("nav_page", Nav);

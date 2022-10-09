@@ -1,50 +1,72 @@
 const  AdminListTable = {
 	template: `
-		<div>
-			<h4> Posts | <router-link to="/admin/list/category">Categories</router-link></h4>
-			<input v-model="localSearch"/> 
-			<button @click="goSearch()">Search</button> |
-			<router-link to="/admin/list/add">add</router-link> |
-			
-			<table>
-				<thead>
-					 <tr>	
-					 	<th>ID</th>
-					 	<th>title</th>
-					 	<th>date</th>
-					 	<th>admin</th>
-					 	<th>status</th>
-					 	<th>action</th>
-					 </tr>
-				</thead>
-				<tbody>
-					<tr v-for="x in posts" :key="x.post_id">
-						<td>{{x.post_id}}</td>
-						<td>{{x.post_title}}</td>
-						<td>{{time(x.post_date)}}</td>
-						<td>{{x.admin}}</td>
-						<td>{{x.post_status}}</td>
-						<td>
-							<router-link :to="'/admin/list/edit/'+x.post_hash_id">edit</router-link> |
-							<router-link :to="'/post/'+x.post_hash_id" v-if="x.post_status == 'active'">view</router-link>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+		<div class="row">
+			<div class="col-12">
+				<div class="d-flex my-3">
+					<div class="input-group " style="max-width: 350px">
+					  <input v-model="localSearch"
+					  type="text" class="form-control" placeholder="Post title..." aria-label="Recipient's username" aria-describedby="button-addon2">
+					  <button  @click="goSearch()"
+					  class="btn btn-outline-success" type="button" id="button-addon2">Find</button>
+					</div> 
+					<router-link to="/admin/list/add" class="btn btn-success ms-1">New</router-link>
+				</div>			
+			</div>
 
-			<p> 
-				page(s) 
-				<span v-for="(x, i) in pages" >
-				
-					<router-link v-if="x != page"
-					:to="'/admin/list/page/'+x" 
-					@click="(e)=>goToPage(e,x)">{{x}}</router-link> 
-					<span v-else>{{x}}</span>|
-					
-				</span>
-				<span  v-if="end">end</span >
-				<a href="#/" @click="e => clickMore(e)" v-else> more...</a>
-			</p>
+			<div class="col-12">
+
+				<div class="card shadow-sm mb-2" v-for="x in posts" :key="x.post_id">
+				  <div class="card-body">
+				   	<div class="row">
+				   		<div class="col-12 col-sm-6 col-md-6 align-self-center">
+				   			<small class="text-muted">admin: <b> {{x.admin}}</b> | 
+				   			date: <b>{{time(x.post_date)}}</b></small>
+				   			<p class="mb-0 fw-bold text-truncate" :title="x.post_title">{{x.post_title}}</p>
+				   		</div>
+				   		<div class="col-12 col-sm-6 col-md-3 align-self-center">
+				   			<small class="text-muted">ID: <b>{{x.post_hash_id}} </b><br/>
+				   			Status: <b :class="x.post_status == 'active' ? 'text-success':'text-danger' ">{{x.post_status}}</b></small>
+						</div>
+						<div class="col-12 col-sm-12 col-md-3 align-self-center text-end">
+							<div>
+								<router-link :to="'/admin/list/edit/'+x.post_hash_id">edit</router-link> |
+								<span v-if="x.post_status == 'active'">
+									<router-link :to="'/post/'+x.post_hash_id"  >view</router-link>
+								</span>
+								<span v-else class="text-muted" title="not viewable when archived">
+									view
+								</span>
+								
+							</div>
+						</div>
+
+				   	</div>
+				  </div>
+				</div>
+
+			</div>
+
+			<div class="col-12">
+				<div class="d-inline-flex">
+				     <p class="align-self-center mb-1">Pages: </p>
+				     <ul class="pagination pagination-sm mt-3 ms-2	">
+					   
+					    <li class="page-item" v-for="(x, i) in pages" >
+					    	<a class="page-link " href="#/"
+					    	:key="i" @click.prevent="(e)=>goToPage(e,x)">{{x}}</a>
+
+					    </li>
+					   
+					  </ul>
+
+					  <ul class="pagination pagination-sm mt-3 mx-2 ">
+					  	<li class="page-item ">
+					  		<a class=" page-link " href="#/"
+					  		@click="e=>clickMore(e)">more...</a>
+					  		</li>
+					  </ul>
+				    </div>
+			</div>
 		</div>
 	`,
 	setup () {
