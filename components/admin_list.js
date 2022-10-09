@@ -1,7 +1,7 @@
 const  AdminList = {
 	template: `
 		<div>
-			
+			<h2>List</h2>
 			<ul class="nav nav-tabs" id="myTab" role="tablist">
 			  <li class="nav-item" role="presentation">
 			    <button @click.prevent="router.push('/admin/list/')"

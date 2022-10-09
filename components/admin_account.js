@@ -1,49 +1,103 @@
 const  AdminAccount = {
 	template: `
-		<div >
-			<h1> Account</h1>
-			<div class="d-flex flex-wrap">
-				<div class="m-2">
-					<h3>information</h3>
-					<p>
-						username {{account.admin_username}} <br/>
-						id: {{account.admin_id}} <br/>
-						first name 
-						<input :value="account.admin_fname" 
-						@change="e => account.admin_fname = e.target.value"/> <br/>
-						last name 
-						<input :value="account.admin_lname" 
-						@change="e => account.admin_lname = e.target.value"/> <br/>
-						birthday 
-						<input type="date" :value="account.admin_bday"
-						@change="e => account.admin_bday = e.target.value"/> <br/>
+		<div class="row">
+			<div class="col-12">
+				<h2>Account</h2>
 
-						gender <br/> 
-						<input type="radio" name="gender"
-						value="male" :checked="account.admin_gender == 'male'"
-						@change="e => account.admin_gender = e.target.value"/> male 
-						<input type="radio" name="gender"
-						value="female" :checked="account.admin_gender == 'female'"
-						@change="e => account.admin_gender = e.target.value"/> female <br/>
+			</div>
+			<div class="col-9 col-sm-7 col-md-6 col-lg-5">
+				<div class="card mb-3 shadow-sm">
+				  <div class="card-body">
+				    <h4 class="mb-1">Information</h4>
+				    <hr class="mt-0"/>
+				    <div style="max-width: 200px">
+					    <div class="d-flex justify-content-between" >
+					    	<p class="mb-0">Username:</p>
+					    	<p class="mb-0 text-muted fw-bold"> {{account.admin_username}}</p>
+					    </div>
 
-						<button @click="updateInfo">update</button>
-					</p>
-					
-				</div>
+					    <div class="d-flex justify-content-between">
+					    	<p class="mb-0">ID:</p>
+						   	<p class="mb-0 text-muted fw-bold">{{account.admin_id}} </p>
+					     </div>
+				     </div>
+				   	
+				   	<div class="mb-1">
+					  <label  class="form-label mb-0" >First Name</label>
+					  <input :value="account.admin_fname" 
+					  @change="e => account.admin_fname = e.target.value"
+					  type="text" class="form-control" placeholder="first name....">
+					</div>
 
-				<div  class="m-2">
-					<h3>password</h3>
-					<p>
-						old <input type="password" :value="newPassword.old" 
-						@change="e=>newPassword.old = e.target.value"/> <br/>
-						new <input type="password" :value="newPassword.now" 
-						@change="e=>newPassword.now = e.target.value"/> <br/>
-						confirm <input type="password" :value="newPassword.conf" 
-						@change="e=>newPassword.conf = e.target.value"/> <br/>
-						<button @click="updatePassword()">update</button>
-					</p>
+					<div class="mb-1">
+					  <label  class="form-label mb-0" >Last Name</label>
+					  <input :value="account.admin_lname" 
+					  @change="e => account.admin_lname = e.target.value"
+					  type="text" class="form-control" placeholder="last name....">
+					</div>
+
+					<div class="mb-1" style="max-width: 200px">
+					  <label  class="form-label mb-0" >Birthday</label>
+					  <input :value="account.admin_bday"
+					  @change="e => account.admin_bday = e.target.value"
+					  type="date" class="form-control" >
+					</div>
+
+					<div  class="mb-4">
+						<p class="mb-0">Gender</p>
+						<div class="form-check form-check-inline">
+						  <input :checked="account.admin_gender == 'male'"
+						  @change="e => account.admin_gender = e.target.value"
+						  class="form-check-input" type="radio" name="gender" value="male"/>
+						  <label class="form-check-label">Male</label>
+						</div>
+						<div class="form-check form-check-inline">
+						  <input :checked="account.admin_gender == 'female'"
+						  @change="e => account.admin_gender = e.target.value"
+						  class="form-check-input" type="radio" name="gender" value="female"/>
+						  <label class="form-check-label">Female</label>
+						</div>
+					</div>
+
+					<div class="text-end">
+						<button class="btn btn-outline-success " @click="updateInfo">Update</button>
+					</div>
+				  </div>
 				</div>
 			</div>
+
+			<div class="col-9 col-sm-7 col-md-6 col-lg-5">
+				<div class="card mb-3  shadow-sm">
+				  <div class="card-body">
+				    <h4 class="mb-1">Password</h4>
+				    <hr class="mt-0"/>
+		    		<div class="mb-1">
+					  <label  class="form-label mb-0" >Old</label>
+					  <input :value="newPassword.old" 
+					  @change="e=>newPassword.old = e.target.value"
+					  type="password" class="form-control" placeholder="old password....">
+					</div>
+
+					<div class="mb-1">
+					  <label  class="form-label mb-0" >New</label>
+					  <input :value="newPassword.now" 
+					 @change="e=>newPassword.now = e.target.value"
+					  type="password" class="form-control" placeholder="new password....">
+					</div>
+
+					<div class="mb-4">
+					  <label  class="form-label mb-0" >Confirm</label>
+					  <input :value="newPassword.conf" 
+					  @change="e=>newPassword.conf = e.target.value"
+					  type="password" class="form-control" placeholder="confirm....">
+					</div>
+					<div class="text-end">
+						<button class="btn btn-outline-success " @click="updatePassword()">Update</button>
+					  </div>
+				  </div>
+				</div>
+			</div>
+
 		</div>
 	`,
 	setup () {

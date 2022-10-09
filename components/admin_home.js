@@ -9,38 +9,38 @@ const AdminHome = {
 						    <h5 class="card-title">Admin Info</h5>
 						    <hr class="mt-0"/>
 						    
-						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   	<div class="d-flex justify-content-between" style="max-width: 200px">
 						   		<p class="mb-1">Username:</p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-capitalize">
 						   			{{vuex.admin_username}}
 						   		</p>
 						   	</div>
 
-					   		<div class="d-flex flex-wrap" style="max-width: 200px">
+					   		<div class="d-flex justify-content-between" style="max-width: 200px">
 						   		<p class="mb-1">ID:</p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-mutedtext-capitalize">
 						   			{{vuex.admin_id}}
 						   		</p>
 						   	</div>
 
-						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   	<div class="d-flex justify-content-between" style="max-width: 200px">
 						   		<p class="mb-1">Name:</p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-capitalize">
 						   			{{vuex.admin_fname}} {{vuex.admin_lname}}
 						   		</p>
 						   		
 						   	</div>
 
-						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   	<div class="d-flex justify-content-between" style="max-width: 200px">
 						   		<p class="mb-1">Gender: </p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-capitalize">
 						   			{{vuex.admin_gender}}
 						   		</p>
 						   	</div>
 
-						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   	<div class="d-flex justify-content-between" style="max-width: 200px">
 						   		<p class="mb-1">Birthday: </p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-capitalize">
 						   			{{time(vuex.admin_bday)}}
 						   		</p>
 						   	</div>
@@ -55,23 +55,23 @@ const AdminHome = {
 						    <h5 class="card-title">List Summary</h5>
 						    <hr class="mt-0"/>
 						    
-						   	<div class="d-flex flex-wrap" style="max-width: 200px">
+						   	<div class="d-flex flex-wrap" style="max-width: 200px" >
 						   		<p class="mb-1">Total:</p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-capitalize">
 						   			{{summary.total}}
 						   		</p>
 						   	</div>
 
 					   		<div class="d-flex flex-wrap" style="max-width: 200px">
 						   		<p class="mb-1">Archived: </p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-capitalize">
 						   			{{summary.archive}}
 						   		</p>
 						   	</div>
 
 						   	<div class="d-flex flex-wrap" style="max-width: 200px">
-						   		<p class="mb-1">Categories::</p>
-						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-capitalize">
+						   		<p class="mb-1">Categories:</p>
+						   		<p class="mb-1 ms-auto ms-sm-auto fw-bold text-muted text-capitalize">
 						   			 {{summary.categories}}
 						   		</p>
 						   		
