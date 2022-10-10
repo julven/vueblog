@@ -125,6 +125,48 @@ const query = {
 
 		return statement;
 	},
+	deletePostAndAll:async (hashId) => {
+		let statement = {
+			delete: {
+				post: [
+					"delete post, image, paragraph, header, post_category from post "+
+					"inner join paragraph on post.post_hash_id = paragraph.paragraph_post_hash_id "+
+					"inner join image on post.post_hash_id = image.image_post_hash_id "+
+					"inner join header on post.post_hash_id = header.header_post_hash_id "+
+					"inner join post_category on post.post_id = post_category.post_category_post_id "+
+					"where post.post_hash_id = ?",
+					"s",
+					[hashId]
+				]
+			}
+		}
+
+		return statement
+	},
+	deletePostAndEach: (hashId, table) => {
+
+		let modify = () => {
+			let modified = ""
+			if(table == 'post') {
+				modified = "post_hash_id";
+			}
+			else modified = `${table}_post_hash_id`;
+
+			return modified
+		}
+
+		let statement = {
+			delete: {
+				[table] : [
+					`delete from ${table} where ${modify()} = ?`,
+					"s",
+					[hashId]
+				]
+			}
+		}
+		return statement
+	},
+
 	updateImage: async (data, id, type) => {
 		let statement = {};
 
@@ -441,6 +483,18 @@ const query = {
 		}
 		return statement;
 	},
+	deletePostCategoryByPostId: async id => {
+		let statement = {
+			delete: {
+				post_category: [
+					"delete from post_category where post_category_post_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+		return statement;
+	},
 	deleteCategory: async (id) => {
 		let statement = {
 			delete: {
@@ -574,7 +628,8 @@ const services = () => {
 			.then(resp => resp.text())
 			.then(resp => {
 				
-				// console.log(resp);
+	
+				console.log(resp);
 				
 				if(resp == "error_expired_token") {
 					store.dispatch("admin/action", { action: "logout", payload :null})
@@ -606,10 +661,38 @@ const services = () => {
 		// console.log(JSON.stringify(statement))
 		server(statement)
 	}	
+
+	let validation = (field) => {
+
+		let valid = true
+		let empty = []
+
+
+		field.forEach( (x, i) => {
+		
+			// console.log(x)
+			Object.keys(x).forEach( (xx, ii) => {
+				
+				if(xx == "value" || xx == "cap") {
+					// console.log(x[xx])
+					if(x[xx] == "" || x[xx] == null || x[xx] == undefined) {
+						empty.push({[xx]: x})
+						valid = false
+					}
+				}
+				
+			})
+		})
+
+		// console.log({valid, empty})
+		return valid
+
+	}
 	
 	return {
 		server,
-		addViews
+		addViews,
+		validation
 		
 	}
 
@@ -1133,7 +1216,7 @@ const  AdminListAdd = {
 				  <label  class="form-label mb-0">Image File</label>
 				  <input  accept="image/png, image/gif, image/jpeg" 
 				  @change="e => firstContent[1].value = e.target.files[0]" 
-				  class="form-control" type="file" >
+				  class="form-control" type="file" ref="image">
 				</div>
 
 				<div class="mb-1">
@@ -1187,7 +1270,7 @@ const  AdminListAdd = {
 			<div class="col-12">
 				<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
 				  <button 
-				  @click="router.go(-1)"
+				  @click="router.push('/admin/list')"
 				  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
 				  <button 
 				  @click="addContent()"
@@ -1197,7 +1280,7 @@ const  AdminListAdd = {
 		</div>
 	`,
 	setup () {
-		let { server } = services();
+		let { server, validation } = services();
 		let randId = () => Math.random().toString(36).slice(2, 7);
 		let { ref, watch, computed } = Vue;
 		let router = VueRouter.useRouter();
@@ -1210,6 +1293,7 @@ const  AdminListAdd = {
 		let choose = ref(null)
 		let content = ref([])
 		let categories = ref([])
+		let image = ref(null)
 
 		
 
@@ -1272,8 +1356,24 @@ const  AdminListAdd = {
 
 		let addContent = async () => {
 
-			console.log(firstContent.value, categories.value, content.value)
-			return
+			// console.log(categories.value.length)
+			// return
+
+			let valid = [
+				validation(firstContent.value),
+				validation(content.value),
+				categories.value.length > 0
+			]
+
+			
+
+			if(valid.includes(false)) {
+				alert("all fields must not be empty!")
+				return
+			}
+
+			// console.log(valid.includes(false))
+			// return
 
 			let arrContent = [firstContent.value[1], firstContent.value[2], ...content.value];
 			let statements = [];
@@ -1334,14 +1434,31 @@ const  AdminListAdd = {
 				})
 
 				alert("post submitted")
+				categories.value = [];
+				content.value = [];
+				firstContent.value = [
+					{type: "h1", value: "", id: randId()},
+					{type: "img", value: null, cap: "", id: randId() },
+					{type: "p", value: "", id: randId()}
+				];
+
+				// query.getPosts({search: "", page: 1}).then( resp => {
+				// 	store.dispatch("post/action", { action: "setPosts", payload: resp})
+				// })
+
+
 			})
 
 		}
 
 		watch(() => content.value, (now, old) => {
-			console.log(now)
+			// console.log(now)
 		}, {deep: true})
 
+		watch(() => image.value, (now, old) => {
+			// console.log(now.files[0] )
+		}, {deep: true})
+	
 
 
 		return {
@@ -1353,9 +1470,9 @@ const  AdminListAdd = {
 			router,
 			changeIndex,
 			firstContent,
-		
 			categories,
-			removeCategory
+			removeCategory,
+			image
 		}
 	},
 	beforeRouteLeave( to, from) {
@@ -1945,12 +2062,17 @@ const  AdminListEdit = {
 
 					<div class="col-12">
 						<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
-						  <button  @click="router.go(-1)"
-						  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
-				   			<button @click="addContent()" v-if="postTitle.post_status=='active'"
-						  class="btn btn-outline-warning" type="button">Archive</button>
-						  <button  @click="addContent()" v-else
-						  class="btn btn-success" type="button">Activate</button>
+
+						  <button  @click="router.go(-1)" type="button"
+						  class="btn btn-outline-secondary me-md-2" >Back</button>
+
+				   			<button @click="changeStatus(postTitle.post_id, false)"  
+				   			v-if="postTitle.post_status=='active'"
+						  class="btn btn-outline-warning">Archive</button>
+
+
+						  <button  @click="changeStatus(postTitle.post_id, true)" 
+						  v-else class="btn btn-success" type="button">Activate</button>
 						</div>
 					</div>	
 				</div>
@@ -2595,9 +2717,10 @@ const  AdminListTable = {
 								<span v-if="x.post_status == 'active'">
 									<router-link :to="'/post/'+x.post_hash_id"  >view</router-link>
 								</span>
-								<span v-else class="text-muted" title="not viewable when archived">
-									view
-								</span>
+								<a href="#/" v-else class="text-danger" title="delete this post"
+								@click.prevent="deletePost(x)">
+									delete
+								</a>
 								
 							</div>
 						</div>
@@ -2709,6 +2832,48 @@ const  AdminListTable = {
 			})
 		}
 
+		let deletePost = async x => {
+			console.log(x.post_hash_id, x.post_id)
+			let conf = window.confirm("delete this post: '"+x.post_hash_id+"'?")
+
+			if(conf) {
+
+				// let statement = await query.deletePostAndAll(hashId);
+				// console.log(statement)
+				// return;
+				// let resp = await server(statement)
+				// console.log(resp)
+				let statements = [], servers = [];
+				let arr = ['post', 'image', 'paragraph', 'header'];
+
+				
+
+				for(var i = 0; i < arr.length; i ++) {
+					statements.push( await query.deletePostAndEach(x.post_hash_id, arr[i]))
+					// servers.push( () => server(statements[i]))
+				}
+				
+
+				statements.push( await query.deletePostCategoryByPostId(x.post_id))
+				
+
+				statements.forEach( x => {
+					servers.push(() => server(x))
+				})
+
+			
+
+				let resps = await Promise.all(servers.map( func => func()))
+				
+				console.log(resps)
+				
+				loadPosts()
+
+
+
+			}
+		}
+
 		
 
 		watch( () => store.state.post.posts, (now, old) => {
@@ -2727,6 +2892,7 @@ const  AdminListTable = {
 			goToPage,
 			localSearch,
 			goSearch,
+			deletePost
 		
 		}
 	}

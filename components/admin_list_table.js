@@ -33,9 +33,10 @@ const  AdminListTable = {
 								<span v-if="x.post_status == 'active'">
 									<router-link :to="'/post/'+x.post_hash_id"  >view</router-link>
 								</span>
-								<span v-else class="text-muted" title="not viewable when archived">
-									view
-								</span>
+								<a href="#/" v-else class="text-danger" title="delete this post"
+								@click.prevent="deletePost(x)">
+									delete
+								</a>
 								
 							</div>
 						</div>
@@ -147,6 +148,48 @@ const  AdminListTable = {
 			})
 		}
 
+		let deletePost = async x => {
+			console.log(x.post_hash_id, x.post_id)
+			let conf = window.confirm("delete this post: '"+x.post_hash_id+"'?")
+
+			if(conf) {
+
+				// let statement = await query.deletePostAndAll(hashId);
+				// console.log(statement)
+				// return;
+				// let resp = await server(statement)
+				// console.log(resp)
+				let statements = [], servers = [];
+				let arr = ['post', 'image', 'paragraph', 'header'];
+
+				
+
+				for(var i = 0; i < arr.length; i ++) {
+					statements.push( await query.deletePostAndEach(x.post_hash_id, arr[i]))
+					// servers.push( () => server(statements[i]))
+				}
+				
+
+				statements.push( await query.deletePostCategoryByPostId(x.post_id))
+				
+
+				statements.forEach( x => {
+					servers.push(() => server(x))
+				})
+
+			
+
+				let resps = await Promise.all(servers.map( func => func()))
+				
+				console.log(resps)
+				
+				loadPosts()
+
+
+
+			}
+		}
+
 		
 
 		watch( () => store.state.post.posts, (now, old) => {
@@ -165,6 +208,7 @@ const  AdminListTable = {
 			goToPage,
 			localSearch,
 			goSearch,
+			deletePost
 		
 		}
 	}

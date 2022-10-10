@@ -119,6 +119,19 @@ function query_statement () {
 		else if ($key == "delete") {
 			authenticate();
 			$data = $new_value[array_keys($new_value)[0]];
+
+			if(array_keys($new_value)[0] == "image") {
+				$query_image = execute([
+					"select image_path from image where image_post_hash_id = ?",
+					"s",
+					[$data[2][0]]
+				], $connection);
+				$results = $query_image->get_result();
+				$path = $results->fetch_assoc()["image_path"];
+				if(file_exists($path)) unlink($path);
+			}
+
+			
 			$query = execute($data, $connection);
 			echo json_encode(["affected_rows"=>$query->affected_rows]);
 			return;

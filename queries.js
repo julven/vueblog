@@ -125,6 +125,48 @@ const query = {
 
 		return statement;
 	},
+	deletePostAndAll:async (hashId) => {
+		let statement = {
+			delete: {
+				post: [
+					"delete post, image, paragraph, header, post_category from post "+
+					"inner join paragraph on post.post_hash_id = paragraph.paragraph_post_hash_id "+
+					"inner join image on post.post_hash_id = image.image_post_hash_id "+
+					"inner join header on post.post_hash_id = header.header_post_hash_id "+
+					"inner join post_category on post.post_id = post_category.post_category_post_id "+
+					"where post.post_hash_id = ?",
+					"s",
+					[hashId]
+				]
+			}
+		}
+
+		return statement
+	},
+	deletePostAndEach: (hashId, table) => {
+
+		let modify = () => {
+			let modified = ""
+			if(table == 'post') {
+				modified = "post_hash_id";
+			}
+			else modified = `${table}_post_hash_id`;
+
+			return modified
+		}
+
+		let statement = {
+			delete: {
+				[table] : [
+					`delete from ${table} where ${modify()} = ?`,
+					"s",
+					[hashId]
+				]
+			}
+		}
+		return statement
+	},
+
 	updateImage: async (data, id, type) => {
 		let statement = {};
 
@@ -434,6 +476,18 @@ const query = {
 			delete: {
 				category: [
 					"delete from post_category where post_category_category_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+		return statement;
+	},
+	deletePostCategoryByPostId: async id => {
+		let statement = {
+			delete: {
+				post_category: [
+					"delete from post_category where post_category_post_id = ?",
 					"i",
 					[id]
 				]

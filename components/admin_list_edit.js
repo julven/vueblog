@@ -155,12 +155,17 @@ const  AdminListEdit = {
 
 					<div class="col-12">
 						<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
-						  <button  @click="router.go(-1)"
-						  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
-				   			<button @click="addContent()" v-if="postTitle.post_status=='active'"
-						  class="btn btn-outline-warning" type="button">Archive</button>
-						  <button  @click="addContent()" v-else
-						  class="btn btn-success" type="button">Activate</button>
+
+						  <button  @click="router.go(-1)" type="button"
+						  class="btn btn-outline-secondary me-md-2" >Back</button>
+
+				   			<button @click="changeStatus(postTitle.post_id, false)"  
+				   			v-if="postTitle.post_status=='active'"
+						  class="btn btn-outline-warning">Archive</button>
+
+
+						  <button  @click="changeStatus(postTitle.post_id, true)" 
+						  v-else class="btn btn-success" type="button">Activate</button>
 						</div>
 					</div>	
 				</div>

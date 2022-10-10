@@ -30,7 +30,7 @@ const  AdminListAdd = {
 				  <label  class="form-label mb-0">Image File</label>
 				  <input  accept="image/png, image/gif, image/jpeg" 
 				  @change="e => firstContent[1].value = e.target.files[0]" 
-				  class="form-control" type="file" >
+				  class="form-control" type="file" ref="image">
 				</div>
 
 				<div class="mb-1">
@@ -84,7 +84,7 @@ const  AdminListAdd = {
 			<div class="col-12">
 				<div class="d-grid gap-2 mt-3 d-md-flex justify-content-md-end">
 				  <button 
-				  @click="router.go(-1)"
+				  @click="router.push('/admin/list')"
 				  class="btn btn-outline-secondary me-md-2" type="button">Back</button>
 				  <button 
 				  @click="addContent()"
@@ -94,7 +94,7 @@ const  AdminListAdd = {
 		</div>
 	`,
 	setup () {
-		let { server } = services();
+		let { server, validation } = services();
 		let randId = () => Math.random().toString(36).slice(2, 7);
 		let { ref, watch, computed } = Vue;
 		let router = VueRouter.useRouter();
@@ -107,6 +107,7 @@ const  AdminListAdd = {
 		let choose = ref(null)
 		let content = ref([])
 		let categories = ref([])
+		let image = ref(null)
 
 		
 
@@ -169,8 +170,24 @@ const  AdminListAdd = {
 
 		let addContent = async () => {
 
-			console.log(firstContent.value, categories.value, content.value)
-			return
+			// console.log(categories.value.length)
+			// return
+
+			let valid = [
+				validation(firstContent.value),
+				validation(content.value),
+				categories.value.length > 0
+			]
+
+			
+
+			if(valid.includes(false)) {
+				alert("all fields must not be empty!")
+				return
+			}
+
+			// console.log(valid.includes(false))
+			// return
 
 			let arrContent = [firstContent.value[1], firstContent.value[2], ...content.value];
 			let statements = [];
@@ -231,14 +248,31 @@ const  AdminListAdd = {
 				})
 
 				alert("post submitted")
+				categories.value = [];
+				content.value = [];
+				firstContent.value = [
+					{type: "h1", value: "", id: randId()},
+					{type: "img", value: null, cap: "", id: randId() },
+					{type: "p", value: "", id: randId()}
+				];
+
+				// query.getPosts({search: "", page: 1}).then( resp => {
+				// 	store.dispatch("post/action", { action: "setPosts", payload: resp})
+				// })
+
+
 			})
 
 		}
 
 		watch(() => content.value, (now, old) => {
-			console.log(now)
+			// console.log(now)
 		}, {deep: true})
 
+		watch(() => image.value, (now, old) => {
+			// console.log(now.files[0] )
+		}, {deep: true})
+	
 
 
 		return {
@@ -250,9 +284,9 @@ const  AdminListAdd = {
 			router,
 			changeIndex,
 			firstContent,
-		
 			categories,
-			removeCategory
+			removeCategory,
+			image
 		}
 	},
 	beforeRouteLeave( to, from) {

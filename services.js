@@ -39,7 +39,8 @@ const services = () => {
 			.then(resp => resp.text())
 			.then(resp => {
 				
-				// console.log(resp);
+	
+				console.log(resp);
 				
 				if(resp == "error_expired_token") {
 					store.dispatch("admin/action", { action: "logout", payload :null})
@@ -71,10 +72,38 @@ const services = () => {
 		// console.log(JSON.stringify(statement))
 		server(statement)
 	}	
+
+	let validation = (field) => {
+
+		let valid = true
+		let empty = []
+
+
+		field.forEach( (x, i) => {
+		
+			// console.log(x)
+			Object.keys(x).forEach( (xx, ii) => {
+				
+				if(xx == "value" || xx == "cap") {
+					// console.log(x[xx])
+					if(x[xx] == "" || x[xx] == null || x[xx] == undefined) {
+						empty.push({[xx]: x})
+						valid = false
+					}
+				}
+				
+			})
+		})
+
+		// console.log({valid, empty})
+		return valid
+
+	}
 	
 	return {
 		server,
-		addViews
+		addViews,
+		validation
 		
 	}
 
