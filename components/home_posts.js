@@ -25,7 +25,15 @@ let HomePosts = {
 				<div class="col-12 col-sm-12 col-md-7 col-lg-6">
 
 					
-					<home_posts_list :data="posts" />
+					<div v-if="load">
+						<div class="d-flex justify-content-center" style="height: 50px">
+							<div class="spinner-border text-success align-self-center" role="status" >
+							  <span class="visually-hidden">Loading...</span>
+							</div>
+						</div>
+					</div>
+					<home_posts_list :data="posts"  v-else/>
+					
 					
 
 				    <div class="d-inline-flex">
@@ -71,6 +79,7 @@ let HomePosts = {
 				posts: []
 			})
 		let end = ref(false);
+		let load = ref(false)
 		
 
 
@@ -120,7 +129,7 @@ let HomePosts = {
 		}
 
 		let getPosts = async (type) => {
-			
+			load.value = true
 			let statement = null;
 
 			if (data.value.category != "") {
@@ -171,7 +180,7 @@ let HomePosts = {
 				console.log(data.value.posts)
 			}
 			
-            
+            load.value = false
 		}
 
 		let loadMore = async () => {
@@ -260,7 +269,8 @@ let HomePosts = {
 			end,
 			router,
 			goSearch,
-			goCategory
+			goCategory,
+			load
 		}
 	}
 }

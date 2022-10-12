@@ -39,6 +39,12 @@ let HomeMain = {
 		let loading = ref(true);
 
 		onMounted( () => {
+
+			if(store.state.viewer.recentPost.length > 0){
+				loading.value = false;
+				return;	
+			} 
+
 			query.getPosts({search: "", page: 1}, true).then(resp => {
 				// console.log(resp)
 				// return;
@@ -109,9 +115,11 @@ let HomeMain = {
 					let [ x, y, z, ...rest] = resp2;
 					let [aa,bb,cc,dd,ee, ...rest2] = rest;
 					// console.log([x,y,z], rest)
-					recentPost.value = [x, y, z];
-					morePost.value = [aa,bb,cc,dd,ee];
+					// recentPost.value = [x, y, z];
+					// morePost.value = [aa,bb,cc,dd,ee];
 					loading.value = false
+					store.dispatch('viewer/action', {action: 'recentPost', payload : [x,y,z]})
+					store.dispatch('viewer/action', {action: 'morePost', payload : [aa,bb,cc,dd,ee]})
 					
 
 				})
@@ -123,8 +131,10 @@ let HomeMain = {
 		}, {deep: true})
 
 		return {
-			recentPost,
-			morePost,
+			// recentPost,
+			// morePost,
+			recentPost :computed( () => store.state.viewer.recentPost) ,
+			morePost: computed( () => store.state.viewer.morePost) ,
 			loading
 			
 		}

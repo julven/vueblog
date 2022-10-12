@@ -8,8 +8,15 @@ function create_connection () {
 		"localhost", 
 		"root",
 		"",
-		"vueblog"
+		"vueblog",
+
+
+		// "localhost",
+		// "id15268558_julvencrud",
+		// "j4r5}Xab6NM)SGbN",
+		// "id15268558_personcrud",
 	);
+	
 
 	if($connection->connect_error) {
 		die("no database connection: ".$connection->connect_error);
