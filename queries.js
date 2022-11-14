@@ -16,8 +16,8 @@ const query = {
 		let statement = {
 			write2 : {
 				post : [
-					"insert into post set post_title = ?,"+
-					"post_hash_id = ?, post_admin_id = ?, post_status = ?",
+					"INSERT INTO post (post_title, post_hash_id, post_admin_id, post_status) "+
+					"VALUES (?, ?, ?, ?)",
 					"ssis",
 					[data.post_title, query.getHashId(), data.admin_id, "active"]
 				]

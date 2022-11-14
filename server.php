@@ -11,10 +11,10 @@ function create_connection () {
 		"vueblog",
 
 
-		// "localhost",
-		// "id15268558_julvencrud",
-		// "j4r5}Xab6NM)SGbN",
-		// "id15268558_personcrud",
+		 // "sql307.epizy.com",
+   //      "epiz_32791845",
+   //      "30x2FgPRxBTa",
+   //      "epiz_32791845_vueblog"
 	);
 	
 
@@ -50,6 +50,7 @@ function query_statement () {
 
 	
 	$connection = create_connection();
+	mysqli_set_charset($connection, 'utf8');
 
 	foreach ($_POST as $key => $value) {
 		$new_value = json_decode($value, true);

@@ -79,10 +79,17 @@ const AdminListCategory = {
 
 				let allCount = await Promise.all(arrCount.map( func => func()))
 
-				allCount.forEach( (x, i) => {
-					if(x[0].count > 0) resp[i].count = x[0].count;
+				// allCount.forEach( (x, i) => {
+				// 	if(x[0].count > 0) resp[i].count = x[0].count;
+				// 	else resp[i].count = 0;
+				// })
+
+				for(var i = 0; i < allCount.length; i++) {
+					console.log(allCount[i][0])
+					if(allCount[i][0].count > 0) resp[i].count = allCount[i][0].count;
 					else resp[i].count = 0;
-				})
+				}
+				
 
 				// console.log(allCount)
 				list.value = resp

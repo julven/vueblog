@@ -51,7 +51,8 @@ const HomePostsList = {
 		return {
 			posts: Vue.computed( () => props.data),
 			time: (date) => moment(date).format('MMM D, YYYY '),
-			viewPost
+			viewPost,
+			router
 		}
 	}
 }

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.0.2
+-- version 5.1.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 07, 2022 at 11:48 AM
--- Server version: 10.4.14-MariaDB
--- PHP Version: 7.4.9
+-- Generation Time: Oct 17, 2022 at 04:51 PM
+-- Server version: 10.4.21-MariaDB
+-- PHP Version: 8.0.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -44,7 +44,7 @@ CREATE TABLE `admin_blog` (
 --
 
 INSERT INTO `admin_blog` (`admin_id`, `admin_username`, `admin_password`, `admin_fname`, `admin_lname`, `admin_bday`, `admin_gender`, `admin_token`, `admin_token_expire`) VALUES
-(1, 'admintest', 'admintest', 'admin', 'admin', '2000-01-01', 'male', 'ce47ed5', '2022-10-07 18:16:26');
+(1, 'admintest', 'admintest', 'julven', 'condor', '1990-07-07', 'male', '010722a', '2022-10-17 23:20:26');
 
 -- --------------------------------------------------------
 
@@ -206,7 +206,6 @@ INSERT INTO `header` (`header_id`, `header_content`, `header_index`, `header_pos
 (82, 'Ut enim ad minima veniam', 3, 'nx4dp'),
 (83, 'Ut enim ad minima veniam', 3, 'dx99x'),
 (84, 'Ut enim ad minima veniam', 3, 'ak54d'),
-(85, 'Ut enim ad minima veniam', 3, '272yd'),
 (86, 'Ut enim ad minima veniam', 3, '2b1ou'),
 (87, 'Ut enim ad minima veniam', 3, '5u0km'),
 (88, 'Ut enim ad minima veniam', 3, '81uh7'),
@@ -388,11 +387,9 @@ INSERT INTO `image` (`image_id`, `image_path`, `image_caption`, `image_post_hash
 (161, 'img/image_82366.jpeg', 'Nemo enim ipsam voluptatem', 'dx99x', 0),
 (162, 'img/image_50337.jpeg', 'Nemo enim ipsam voluptatem', 'ak54d', 0),
 (163, 'img/image_16880.jpeg', 'Nemo enim ipsam voluptatem', 'nx4dp', 0),
-(164, 'img/image_96688.jpeg', 'Nemo enim ipsam voluptatem', '272yd', 0),
 (165, 'img/image_70118.jpeg', 'Excepteur sint occaecat cupidatat non proident', 'dx99x', 2),
 (166, 'img/image_79219.jpeg', 'Excepteur sint occaecat cupidatat non proident', 'nx4dp', 2),
 (167, 'img/image_42325.jpeg', 'Excepteur sint occaecat cupidatat non proident', 'ak54d', 2),
-(168, 'img/image_47255.jpeg', 'Excepteur sint occaecat cupidatat non proident', '272yd', 2),
 (169, 'img/image_59407.jpeg', 'Nemo enim ipsam voluptatem', '2b1ou', 0),
 (170, 'img/image_28336.jpeg', 'Nemo enim ipsam voluptatem', '5u0km', 0),
 (171, 'img/image_47953.jpeg', 'Excepteur sint occaecat cupidatat non proident', '2b1ou', 2),
@@ -415,11 +412,10 @@ INSERT INTO `image` (`image_id`, `image_path`, `image_caption`, `image_post_hash
 (189, 'img/image_28647.jpeg', 'How I wish I could pull ingredients like these', 'j51tf', 0),
 (190, 'img/image_70068.jpeg', 'test test post test', 'tbnqc', 0),
 (191, 'img/image_21918.jpeg', 'Sometimes she wondered if all they really needed was some interaction', 'flb9b', 0),
-(192, 'img/image_18872.jpeg', 'test test List Add', 'usmoc', 0),
 (193, 'img/image_92676.jpeg', 'There was little doubt that the bridge was unsafe. ', 'wfils', 0),
 (194, 'img/image_49314.jpeg', 'tesetestste test', 'twuab', 6),
 (195, 'img/image_89665.jpeg', 'Eating raw fish didn\'t sound like a good idea.', 'flb9b', 4),
-(196, 'img/image_96163.jpeg', 'test', '1zzh3', 0);
+(196, 'img/image_19507.jpeg', 'The rain and wind abruptly stopped, but the sky still had the gray swirls of storms in the distance.', '1zzh3', 0);
 
 -- --------------------------------------------------------
 
@@ -654,7 +650,6 @@ INSERT INTO `paragraph` (`paragraph_id`, `paragraph_content`, `paragraph_index`,
 (231, 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 4, '89xfy'),
 (232, 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.', 5, '89xfy'),
 (233, '\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ', 1, 'dx99x'),
-(234, '\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ', 1, '272yd'),
 (235, '\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ', 1, 'ak54d'),
 (236, 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 4, '5na9p'),
 (237, 'Sometimes it\'s just better not to be seen. That\'s how Harry had always lived his life. He prided himself as being the fly on the wall and the fae that blended into the crowd. That\'s why he was so shocked that she noticed him.', 1, 'nx4dp'),
@@ -663,11 +658,9 @@ INSERT INTO `paragraph` (`paragraph_id`, `paragraph_content`, `paragraph_index`,
 (240, 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 4, 'nx4dp'),
 (241, 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 4, 'dx99x'),
 (242, 'She considered the birds to be her friends. She\'d put out food for them each morning and then she\'d watch as they came to the feeders to gorge themselves for the day. She wondered what they would do if something ever happened to her. Would they miss the meals she provided if she failed to put out the food one morning?', 1, '2b1ou'),
-(243, 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 4, '272yd'),
 (244, 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.', 5, 'dx99x'),
 (245, 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.', 3, 'ak54d'),
 (246, 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.', 5, 'nx4dp'),
-(247, 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.', 5, '272yd'),
 (248, 'She sat deep in thought. The next word that came out o her mouth would likely be the most important word of her life. It had to be exact with no possibility of being misinterpreted. She was ready. She looked deeply into his eyes and said, \"Octopus.\"', 1, '5u0km'),
 (249, 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 4, '2b1ou'),
 (250, '\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ', 1, '81uh7'),
@@ -700,7 +693,6 @@ INSERT INTO `paragraph` (`paragraph_id`, `paragraph_content`, `paragraph_index`,
 (279, 'The red glow of tail lights indicating another long drive home from work after an even longer 24-hour shift at the hospital. The shift hadn’t been horrible but the constant stream of patients entering the ER meant there was no downtime.', 2, 'flb9b'),
 (280, 'test List Add', 1, 'e9p3c'),
 (281, 'test test List Addtest test List Addtest test List Addtest test List Addtest test List Addtest test List Add', 1, 'aryxl'),
-(282, 'test test List Addtest test List Addtest test List Addtest test List Addtest test List Add', 1, 'usmoc'),
 (283, 'He may have been able to work one out if he had a bit of time to think things through, but time was something he didn\'t have. A choice needed to be made, and it needed to be made quickly.', 1, 'wfils'),
 (285, 'test test test', 6, '5na9p'),
 (286, 'She understood in her mind that the view was supposed to be beautiful, but all she felt was fear. There had always been something about heights that disturbed her, and now she could feel the full force of this unease. She reluctantly crept a little closer with the encouragement of her friends as the fear continued to build. She couldn\'t help but feel that something horrible was about to happen.', 3, 'j51tf'),
@@ -710,7 +702,7 @@ INSERT INTO `paragraph` (`paragraph_id`, `paragraph_content`, `paragraph_index`,
 (291, 'The car had been hastily packed and Marta was inside trying to round up the last of the pets. Dave went through his mental list of the most important papers and documents that they couldn\'t leave behind. ', 4, 'wfils'),
 (292, 'What were they eating? It didn\'t taste like anything she had ever eaten before and although she was famished, she didn\'t dare ask. She knew the answer would be one she didn\'t want to hear.', 3, 'flb9b'),
 (293, 'What was beyond the bend in the stream was unknown. Both were curious, but only one was brave enough to want to explore. That was the problem. There was always one that let fear rule her life.', 5, 'flb9b'),
-(294, 'test', 1, '1zzh3');
+(294, 'The red ball sat proudly at the top of the toybox. It had been the last to be played with and anticipated it would be the next as well. The other toys grumbled beneath. At one time each had held the spot of the red ball, but over time they had sunk deeper and deeper into the toy box.', 1, '1zzh3');
 
 -- --------------------------------------------------------
 
@@ -725,7 +717,7 @@ CREATE TABLE `post` (
   `post_admin_id` int(11) NOT NULL,
   `post_date` datetime NOT NULL DEFAULT current_timestamp(),
   `post_status` varchar(128) NOT NULL,
-  `post_view` int(11) NOT NULL
+  `post_view` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -805,10 +797,9 @@ INSERT INTO `post` (`post_id`, `post_hash_id`, `post_title`, `post_admin_id`, `p
 (99, '5na9p', 'Sed ut perspiciatis', 1, '2022-10-02 01:28:46', 'active', 53),
 (100, 'azj5h', 'Sed ut perspiciatis', 1, '2022-10-02 01:28:47', 'active', 80),
 (101, '89xfy', 'Sed ut perspiciatis', 1, '2022-10-02 01:28:47', 'active', 42),
-(102, 'dx99x', 'Sed ut perspiciatis', 1, '2022-10-02 01:28:48', 'active', 68),
+(102, 'dx99x', 'hard days work pays off', 1, '2022-10-02 01:28:48', 'active', 69),
 (103, 'nx4dp', 'here were no words that could help', 1, '2022-10-02 01:28:48', 'active', 14),
 (104, 'ak54d', 'Sed ut perspiciatis', 1, '2022-10-02 01:28:48', 'archive', 64),
-(105, '272yd', 'psa quae ab ', 1, '2022-10-02 01:28:48', 'active', 78),
 (106, '2b1ou', 'She just stared at the blank card', 1, '2022-10-02 01:28:48', 'active', 99),
 (107, '5u0km', 'Yesterday, before she left to go home', 1, '2022-10-02 01:28:48', 'active', 59),
 (108, 'k43k6', 'test lorem sample', 1, '2022-10-02 01:28:48', 'archive', 98),
@@ -819,9 +810,8 @@ INSERT INTO `post` (`post_id`, `post_hash_id`, `post_title`, `post_admin_id`, `p
 (113, 'i5c2m', 'That blank screen taunting him', 1, '2022-10-02 01:30:11', 'active', 69),
 (114, 'j51tf', 'Life also has hard work', 1, '2022-10-03 22:58:39', 'archive', 45),
 (115, 'flb9b', 'She had some of the “regulars”', 1, '2022-10-03 23:05:10', 'active', 19),
-(118, 'usmoc', 'test test List Add', 1, '2022-10-03 23:51:24', 'archive', 53),
 (119, 'wfils', 'Bob didn\'t see another option', 1, '2022-10-03 23:54:30', 'active', 9),
-(120, '1zzh3', 'test', 1, '2022-10-07 12:55:42', 'archive', 0);
+(120, '1zzh3', 'The calm before the storm. ', 1, '2022-10-07 12:55:42', 'active', 4);
 
 -- --------------------------------------------------------
 
@@ -975,7 +965,6 @@ INSERT INTO `post_category` (`post_category_id`, `post_category_post_id`, `post_
 (134, 102, 38),
 (135, 104, 7),
 (136, 104, 21),
-(137, 105, 6),
 (138, 104, 12),
 (139, 106, 6),
 (140, 106, 28),
@@ -1000,12 +989,14 @@ INSERT INTO `post_category` (`post_category_id`, `post_category_post_id`, `post_
 (159, 116, 34),
 (160, 116, 11),
 (161, 117, 29),
-(162, 118, 4),
 (168, 119, 38),
 (172, 119, 26),
 (173, 119, 15),
 (174, 120, 58),
-(175, 120, 34);
+(175, 120, 34),
+(177, 114, 42),
+(179, 123, 28),
+(180, 123, 49);
 
 --
 -- Indexes for dumped tables
@@ -1076,31 +1067,31 @@ ALTER TABLE `category`
 -- AUTO_INCREMENT for table `header`
 --
 ALTER TABLE `header`
-  MODIFY `header_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
+  MODIFY `header_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
 
 --
 -- AUTO_INCREMENT for table `image`
 --
 ALTER TABLE `image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=197;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=207;
 
 --
 -- AUTO_INCREMENT for table `paragraph`
 --
 ALTER TABLE `paragraph`
-  MODIFY `paragraph_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=295;
+  MODIFY `paragraph_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=305;
 
 --
 -- AUTO_INCREMENT for table `post`
 --
 ALTER TABLE `post`
-  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
+  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT for table `post_category`
 --
 ALTER TABLE `post_category`
-  MODIFY `post_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=176;
+  MODIFY `post_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=190;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -7,7 +7,7 @@ const services = () => {
 	// return console.log(data);
 
 		const SERVER_URL = 'http://localhost/vueblog/server.php';
-		// const SERVER_URL = 'https://julven.000webhostapp.com/vueblog/server.php';
+		// const SERVER_URL = 'https://julven.epizy.com/vueblog/server.php';
 		// const test = () => console.log(store.state.account);
 
 		let form = new FormData();
@@ -70,7 +70,9 @@ const services = () => {
 
 		let statement = query.addViews(hashId)
 		// console.log(JSON.stringify(statement))
-		server(statement)
+		server(statement).then(resp => {
+			console.log({addViews: resp})
+		})
 	}	
 
 	let validation = (field) => {

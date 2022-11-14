@@ -197,6 +197,8 @@ const  AdminListAdd = {
 				admin_id: state.admin.admin_id,
 			})
 
+			statements.push(post);
+
 			let post_hash = post.write2.post[2][1]
 
 			for( var i = 0; i < arrContent.length; i++){
