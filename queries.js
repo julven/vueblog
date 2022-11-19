@@ -576,7 +576,7 @@ const query = {
 					"inner join post p on p.post_id = pc.post_category_post_id "+
 					"inner join category c on c.category_id = pc.post_category_category_id "+
 					"inner join admin_blog a on a.admin_id = p.post_admin_id "+
-					"where c.category_name = ? limit ?,10",
+					"where c.category_name = ? and p.post_status != 'archive' limit ?,10 ",
 					"si",
 					[data.category,  (data.page - 1)*10]
 				]
