@@ -5,7 +5,7 @@ const AdminListAddHeader = {
 		<div class="mb-2"> 
 			<div class="mb-1">
 			  <label class="form-labe mb-0">
-			  	Image Caption ({{data.id}})
+			  	Header Title ({{data.id}})
 		  		<a  href="#/" @click="e => emitChangeIndex(e, $emit, 'up')">top</a> |
 				<a href="#/" @click="e => emitChangeIndex(e, $emit, 'down')">down</a> |
 				<a href="#/" @click="e => emitDelete(e, $emit)">close</a> 

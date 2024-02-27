@@ -99,6 +99,7 @@ const  AdminListAdd = {
 		let { ref, watch, computed } = Vue;
 		let router = VueRouter.useRouter();
 		let {state } = Vuex.useStore();
+		let store = Vuex.useStore();
 		let firstContent = ref([
 			{type: "h1", value: "", id: randId()},
 			{type: "img", value: null, cap: "", id: randId() },
@@ -109,6 +110,31 @@ const  AdminListAdd = {
 		let categories = ref([])
 		let image = ref(null)
 
+
+		let getPosts = () => {
+			let data = {
+				page: store.state.post.page,
+				search: store.state.post.search
+			}
+			query.getPosts(data).then( resp => {
+				// console.log(resp)
+				// return
+				server(resp).then( async resp2 => {
+					// console.log(resp2 == null)
+					if(resp2 == null) {
+						router.replace("/admin/list");
+						await store.dispatch("post/action", {action: "setPages", payload: [1]})
+						await store.dispatch("post/action", {action: "setPage", payload: 1})
+						getPosts();
+						return;
+					}
+
+					store.dispatch("post/action", {action: "setPosts", payload: resp2}).then( () => {
+						// console.log(store.state.post.posts)
+					})
+				})
+			})
+		}
 		
 
 		let setContent = () => {
@@ -227,7 +253,7 @@ const  AdminListAdd = {
 			}
 
 			let servers = [];
-			servers.push(() => server(post))
+			// servers.push(() => server(post))
 			statements.forEach( x => {
 				servers.push(() => server(x))
 			})
@@ -249,6 +275,8 @@ const  AdminListAdd = {
 					})
 				})
 
+
+
 				alert("post submitted")
 				categories.value = [];
 				content.value = [];
@@ -257,6 +285,8 @@ const  AdminListAdd = {
 					{type: "img", value: null, cap: "", id: randId() },
 					{type: "p", value: "", id: randId()}
 				];
+
+				getPosts();
 
 				// query.getPosts({search: "", page: 1}).then( resp => {
 				// 	store.dispatch("post/action", { action: "setPosts", payload: resp})
